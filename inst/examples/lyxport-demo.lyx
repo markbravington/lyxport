@@ -3,7 +3,7 @@
 \begin_document
 \begin_header
 \save_transient_properties true
-\origin D:/r2.0/test_latexport/
+\origin D:/temp/rtest/
 \textclass article
 \use_default_options true
 \begin_modules
@@ -109,6 +109,22 @@ Example for R package
 lyxport
 \end_layout
 
+\begin_layout Author
+Mark Bravington,
+ November 2024
+\end_layout
+
+\begin_layout Section
+Biblio info:
+ housekeeping
+\end_layout
+
+\begin_layout Standard
+Somewhere in this file,
+ there needs to be bibliography information,
+ like this:
+\end_layout
+
 \begin_layout Standard
 \begin_inset ERT
 status open
@@ -184,6 +200,30 @@ LatexCommand tableofcontents
 \end_layout
 
 \begin_layout Standard
+Because it's a local bibliography (just a file in the same folder as this one—
+ name start 
+\begin_inset Quotes eld
+\end_inset
+
+./
+\begin_inset Quotes erd
+\end_inset
+
+ above),
+ I also need something like this,
+ to make sure it gets passed on during the export process.
+ (Look at 
+\begin_inset Quotes eld
+\end_inset
+
+lyxport-docu
+\begin_inset Quotes erd
+\end_inset
+
+.)
+\end_layout
+
+\begin_layout Standard
 \begin_inset ERT
 status open
 
@@ -226,6 +266,16 @@ fi
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+If you export this file to PDF (or just do Document->View) you won't see the ERT or the include-listing.
+ In fact the same goes for exporting to MSWord,
+ but they have to be in the LyX source for export-to-MSWord to work properly.
+\end_layout
+
+\begin_layout Section
+A bit of maths and so on
 \end_layout
 
 \begin_layout Standard
@@ -999,7 +1049,7 @@ Here's one!
 \end_layout
 
 \begin_layout Standard
-Not much to me,
+There's not much to me,
  though.
  Just Table
 \begin_inset space ~

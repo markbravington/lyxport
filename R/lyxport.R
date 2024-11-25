@@ -707,13 +707,27 @@ stop( "Can't find FORMAT and/or CONVERTERS section: preferences file looks malfo
     scatn( sprintf( 'preferences file backed-up to "%s", and updated with new goodies', oprefile))
   } # if changes
   
-  dir.create( file.path( userdir, 'examples'), showWarnings=FALSE)
-  file.copy( system.file( 'examples/eqntest1.lyx', package='lyxport'), 
-      file.path( userdir, 'examples'),
+  mkdir( file.path( userdir, 'examples/lyxport'))  # less fussy than dir.create
+  egfiles <- dir( system.file( 'examples', package='lyxport'),
+      full.names=TRUE, no..=TRUE)
+  file.copy( egfiles, file.path( userdir, 'examples/lyxport'),
       overwrite=TRUE)
   
-  dir.create( file.path( userdir, 'doc'), showWarnings=FALSE)
-  file.copy( system.file( 'examples/lyxport-docu.lyx', package='lyxport'), 
+  # Also, might need to tweak the \origin line in lxyport-demo.lyx (or any other dot-lyx examples).
+  # IDNK whether this matters, but the point is to avoid LyX hard-coding the _original_ path of minibib.bib
+  # etc, when it exports to Latex.
+  for( iex in grep( '[.]lyx$', basename( egfiles))){
+    slurp <- readLines( egfiles[ iex])
+    orig <- startsWith( slurp, '\\origin ')
+    if( any( orig)){
+      slurp[ orig] <- '\\origin /userdir/examples/lyxport/'
+      writeLines( slurp, file.path( userdir, 'examples/lyxport', 
+          basename( egfiles[ iex])))
+    }
+  }
+  
+  mkdir( file.path( userdir, 'doc')) # less fussy than dir.create
+  file.copy( system.file( 'doc/lyxport-docu.lyx', package='lyxport'), 
       file.path( userdir, 'doc'), 
       overwrite=TRUE)
 

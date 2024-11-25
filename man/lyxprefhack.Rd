@@ -7,7 +7,7 @@
 }
 \arguments{\item{ userdir}{Where your config files live; see section 2 of LyX's "Customization" manual. R{} will prompt you for it if you don't set the parameter, so you can copy it from "Help->About" in LyX; single backslashes are OK.}
 }
-\value{Overwrites the "preferences" file (unless there's no change required), after backing up the old one to "old_preferences<N>" (guaranteed not to overwrite any existing backup). Copies one file from the R{} installation to LyX's "<userdir>/doc" ("lyxport-docu.lyx") and one to LyX's "<userdir>/examples" ("eqntest1.lyx").
+\value{Overwrites the "preferences" file (unless there's no change required), after backing up the old one to "old_preferences<N>" (guaranteed not to overwrite any existing backup). Copies one file from the R{} installation to LyX's "<userdir>/doc" ("lyxport-docu.lyx") and one to LyX's "<userdir>/examples" ("lyxport-demo.lyx").
 }
 \details{
 To enable automatic export from LyX, you need to add two Preference settings inside LyX, either manually or by editing the "preferences" file in your LyX Userdir. The function \code{\link{lyxprefhack}} will attempt to do the latter, at your own risk.

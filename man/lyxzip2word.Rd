@@ -62,8 +62,9 @@ The steps in the conversion process are (actually there's more than this, this l
 }
 \examples{
 \dontrun{
-# In LyX, open the "eqntest1.lyx" example, then File->Export->Lyxzip. Then...
-lyxzip2word( 'eqntest1.zip')
+# In LyX, open the "lyxport-demo.lyx" example, then File->Export->Lyxzip. Then try exporting
+# to a non-MSWord format, via eg...
+lyxzip2word( 'lyxport-demo.zip', outext='html')
 }
 misc
 }
