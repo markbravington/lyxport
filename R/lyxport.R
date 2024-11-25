@@ -731,6 +731,32 @@ stop( "Can't find FORMAT and/or CONVERTERS section: preferences file looks malfo
       file.path( userdir, 'doc'), 
       overwrite=TRUE)
 
+  # Add item to Help submenu
+  menfile <- file.path( userdir, 'ui/stdmenus.inc')
+  men <- readLines( menfile)
+  
+  lyxport_item <- 'Item "lyxport" "help-open lyxport-docu"'
+  already <- any( grepl( '^[ \t]*' %&% lyxport_item, men))
+  if( !already){
+    menstart <- grep( '^[ \t]*Menu "', men)
+    menend <- grep( '^[ \t]*End *$', men)
+    submenl <- grep( '^[ \t]*Submenu "', men)
+
+    helpmenstart <- menstart[ grep( '"help"', men[ menstart])[1]]
+    subhelpref <- min( submenl %such.that% (.>helpmenstart))
+    subhelpname <- sub( '.*("[^"]+") *$', '\\1', men[ subhelpref])
+
+    subhelpstart <- menstart[ grep( subhelpname, men[ menstart], fixed=TRUE)[1]]
+    # add just before the corresponding "End"
+    subhelpend <- min( menend %such.that% (.>subhelpstart))
+    indent <- sub( '[^ \t].*', '', men[ subhelpend-1])
+    men <- multinsert( men, subhelpend-1, sprintf( '%s%s', indent,
+        c( 'Separator', lyxport_item)))
+    file.copy( menfile, file.path( userdir, 'ui/old_stdmenus.inc'), overwrite=TRUE)
+    writeLines( men, menfile)
+    scatn( 'Updated "ui/stdmenus.inc", previous version in "ui/old_stdmenus.inc"')
+  }
+
 return( as.cat( c( newdef, newconvo)))
 }
 
