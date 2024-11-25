@@ -1,0 +1,4 @@
+lyxport-package                     How to use the lyxport package
+lyxprefhack                         Prepare LyX for better export to MSWord
+lyxzip2word                         Convert LyX to MSWord or other format
+requote_lyx                         Clean up LyX quotation marks

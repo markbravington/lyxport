@@ -1,0 +1,11 @@
+Package: lyxport
+Version: 1.0.124
+Author: Mark Bravington <markb2@summerinsouth.net>
+Maintainer: Mark Bravington <markb2@summerinsouth.net>
+Imports: mvbutils, Rcpp
+LinkingTo: Rcpp
+Title: LyX to MSWord etc
+Description: Tools for smooth Lyx export via pandoc, currently to MSWord but to potentially other formats
+SystemRequirements: LyX, pandoc, ImageMagick
+License: GPL-2
+Collate: lyxport.R Cloaders_lyxport.R

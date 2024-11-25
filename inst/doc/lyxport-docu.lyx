@@ -1,0 +1,1040 @@
+#LyX 2.4 created this file. For more info see https://www.lyx.org/
+\lyxformat 620
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin D:/r2.0/lyxport/inst/doc/
+\textclass article
+\use_default_options true
+\begin_modules
+InStar
+enumitem
+graphicboxes
+\end_modules
+\maintain_unincluded_children no
+\language english
+\language_package default
+\inputencoding utf8
+\fontencoding auto
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_roman_osf false
+\font_sans_osf false
+\font_typewriter_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures false
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\float_placement h
+\float_alignment class
+\paperfontsize 11
+\spacing onehalf
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine biblatex-natbib
+\cite_engine_type authoryear
+\biblio_options maxbibnames=9, maxcitenames=2,terseinits=true,giveninits=true,uniquename=false, uniquelist=false
+\biblatex_bibstyle authoryear
+\biblatex_citestyle authoryear
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date true
+\justification true
+\use_refstyle 1
+\use_formatted_ref 0
+\use_minted 0
+\use_lineno 0
+\notefontcolor #cf8a00
+\boxbgcolor #bebebe
+\branch not-used
+\selected 0
+\filename_suffix 0
+\color background background
+\end_branch
+\branch child-variance
+\selected 0
+\filename_suffix 0
+\color background background
+\end_branch
+\branch greyout
+\selected 0
+\filename_suffix 0
+\color background background
+\end_branch
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 1.5cm
+\topmargin 3cm
+\rightmargin 1.5cm
+\bottommargin 2cm
+\secnumdepth 5
+\tocdepth 5
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tablestyle default
+\listings_params "basicstyle={\ttfamily\small\color{red}},frame=single,rulecolor={\color{red}}"
+\tracking_changes false
+\output_changes true
+\change_bars false
+\postpone_fragile_content false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\docbook_table_output 0
+\docbook_mathml_prefix 1
+\end_header
+
+\begin_body
+
+\begin_layout Title
+
+\family typewriter
+lyxport
+\family default
+ documentation
+\end_layout
+
+\begin_layout Section
+Overview
+\end_layout
+
+\begin_layout Standard
+The 
+\family typewriter
+lyxport
+\family default
+ R package is for exporting LyX to MSWord--- which I sometimes have to do,
+ under duress--- and perhaps other formats.
+ Unlike LyX's built-in 
+\begin_inset Quotes eld
+\end_inset
+
+MS Word Open Office XML
+\begin_inset Quotes erd
+\end_inset
+
+ export,
+ 
+\family typewriter
+lyxport
+\family default
+ does proper cross-referencing including tables,
+ figures (correctly sized),
+ lists,
+ equations;
+ and it gets the appendices and bibliography all Working Nicely.
+ Most of the heavy lifting is still done by Pandoc,
+ as in LyX's built-in export option;
+ but Pandoc--- wonderful though it is!--- doesn't get everything right even with well-known filters (as you have probably discovered yourself by now,
+ else you mightn't be reading this).
+ So the package contains a lot of 
+\emph on
+my
+\emph default
+ behind-the-scenes fiddly code in order to save 
+\emph on
+you 
+\emph default
+lots of manual post-tinkering.
+\end_layout
+
+\begin_layout Standard
+The use-case I have in mind is basically my own:
+ you have prepared a long and lovely paper in LyX that generates a perfect and pretty PDF.
+ But for some reason you have to submit it to some journal that insists on miserable misbegotten manuscripts in MSWord.
+ Sigh--- I sincerely feel your pain!
+ There might be several rounds of back-and-forth between you and the journal,
+ so you reeeally don't want to have to repeatedly do manual edits of the Word version of an 80% successful conversion using an editor you hate.
+ The conversion should look reasonably decent,
+ citations and cross-refs should all be correct,
+ etc;
+ but journals always fart around with the appearance of tables etc,
+ so there's no need to get 
+\emph on
+every
+\emph default
+ detail of appearance exactly matching between PDF and MSWord.
+ And that's the level that 
+\family typewriter
+lyxport
+\family default
+ aims at.
+\end_layout
+
+\begin_layout Standard
+To see the features,
+ open 
+\begin_inset Quotes eld
+\end_inset
+
+examples/eqntest1.lyx
+\begin_inset Quotes erd
+\end_inset
+
+.
+ I haven't tested every LyX feature;
+ it's mostly just stuff I need.
+ More things might get added.
+\end_layout
+
+\begin_layout Subsection
+Setup
+\end_layout
+
+\begin_layout Standard
+Once you've installed the package,
+ run 
+\family typewriter
+lyxprefhack()
+\family default
+ to set things up for direct use from LyX.
+ Then you should see an "MSWord (lyxport)" option in File->Export,
+ and a 
+\begin_inset Quotes eld
+\end_inset
+
+lyxport
+\begin_inset Quotes erd
+\end_inset
+
+ item in LyX's Help menu (this file).
+ You can also see a PDF version via 
+\family typewriter
+RShowDoc("lyxport-docu",package="lyxport")
+\family default
+.
+\end_layout
+
+\begin_layout Standard
+After setup,
+ you won't normally use this package from R yourself;
+ it will just be invoked from LyX.
+ (The exception is if you want to use 
+\family typewriter
+requote_lyx
+\family default
+ or any other future 
+\begin_inset Quotes eld
+\end_inset
+
+offline
+\begin_inset Quotes erd
+\end_inset
+
+ support function—
+ currently that's the only one).
+ However,
+ a keen user could experiment with the core function 
+\family typewriter
+lyxzip2word 
+\family default
+(qv) directly,
+ e.g.
+ to produce other formats besides MSWord.
+\end_layout
+
+\begin_layout Subsection
+Do I need to modify my LyX document?
+\end_layout
+
+\begin_layout Standard
+Currently the only mod you usually need to make to a LyX document,
+ is adding one line of ERT to define the bibliography style (section
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Bibliographies"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+).
+ However,
+ there are general limitations on the input LyX,
+ some of which are documented below.
+\end_layout
+
+\begin_layout Subsection
+Are there are any other useful functions in 
+\family typewriter
+lyxport
+\family default
+?
+\end_layout
+
+\begin_layout Standard
+The helper function 
+\family typewriter
+requote_lyx 
+\family default
+tries to resolve inconsistent use of straight quotes,
+ etc;
+ you do have to use that manually from R,
+ probably only once per LyX file.
+ For example,
+ I used it when creating this document,
+ which was based on importing plain text files of R documentation.
+\end_layout
+
+\begin_layout Section
+Bibliographies
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Bibliographies"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Citations seem to work fine,
+ ie whatever you specify in LyX for the PDF version also appears in the Word version (after a 
+\emph on
+lot
+\emph default
+ of hacking on my part!).
+ But for the bibliography itself,
+ Pandoc does not understand "styles" in the same way that biber/biblatex does (or whatever animal of the Latex zoo it should be;
+ I don't understand this stuff,
+ and am happy to keep it that way!).
+ AFAICS none of the ways you can alter bibliography appearance in LyX/Latex will be understood.
+ Instead,
+ you'll need to specify a "CSL style" manually in your LyX source,
+ as follows.
+ First,
+ you will need to get a suitable CSL file from the internet,
+ eg via 
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+https://editor.citationstyles.org/searchByExample
+\end_layout
+
+\end_inset
+
+ and store it somewhere (see below for thoughts about where).
+ Second,
+ you'll need some ERT to tell 
+\family typewriter
+lyxport
+\family default
+ (which will then tell Pandoc) about the CSL.
+ Here's two options
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+If you are reading this document in LyX,
+ note that these are not real ERT—
+ they are actually program listings inside red framed boxes.
+ And the 
+\begin_inset Quotes eld
+\end_inset
+
+include
+\begin_inset Quotes erd
+\end_inset
+
+ box is a fake graphic.That's because they are not 
+\begin_inset Quotes eld
+\end_inset
+
+for real
+\begin_inset Quotes erd
+\end_inset
+
+ in this document.
+ Don't copy-and-paste these;
+ just put appropriate stuff in ERTs yourself.
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+%% CSL journal-of-applied-genetics.csl
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+or
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+%% CSL ./journal-of-applied-genetics.csl
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The first—
+ i.e.,
+ with no path—
+ is generally better;
+ the CSL file is available for 
+\begin_inset Quotes eld
+\end_inset
+
+global
+\begin_inset Quotes erd
+\end_inset
+
+ use by 
+\family typewriter
+lyxport
+\family default
+ on any LyX document.
+ For that,
+ you need to store the CSL file at the top of your biblio tree,
+ ie in the folder "<top>" where "<top>/bibtex/bib/" contains the actual dot-bib file(s) you are using as biblio sources.
+\end_layout
+
+\begin_layout Standard
+The second assumes you store the CSL file 
+\begin_inset Quotes eld
+\end_inset
+
+locally
+\begin_inset Quotes erd
+\end_inset
+
+,
+ in the same folder as the LyX document that's mentioning it.
+ In that case,
+ you'll need some extra ERT and to insert the file (Insert->File->Child document,
+ type 
+\begin_inset Quotes eld
+\end_inset
+
+Verbatim
+\begin_inset Quotes erd
+\end_inset
+
+ or 
+\begin_inset Quotes eld
+\end_inset
+
+Program Listing
+\begin_inset Quotes erd
+\end_inset
+
+) to ensure it is available during export,
+ like this.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+ifdefined
+\backslash
+theundefinable
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename fake-include.png
+	lyxscale 40
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+fi
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The ERT stops the CSL file itself from appearing in the rendered document (eg in PDF form),
+ but it's still included in the zip file during File->Export->Lyx-zip.
+\end_layout
+
+\begin_layout Section
+Other formats
+\end_layout
+
+\begin_layout Standard
+My requirement is for MSWord,
+ so that's what I've concentrated on.
+ Things might or might not work in other formats;
+ you can experiment inside R with the 
+\family typewriter
+outext
+\family default
+ and 
+\family typewriter
+panoutopts
+\family default
+ arguments of 
+\family typewriter
+lyxzip2word
+\family default
+.
+ Almost all the work is in generating a nice native-Pandoc document,
+ and the final export step is just up to Pandoc,
+ so there is a good chance things will work.
+\end_layout
+
+\begin_layout Standard
+FWIW I personally would prefer to use ODT rather than MSWord if I could (since ODT is open-source and the MSWord 
+\emph on
+program
+\emph default
+ can import ODT),
+ but unfortunately LibreOffice's maths importing is broken (as of v7.6 and for some time before that).
+ [One example:
+ the vertical bar,
+ which I use extensively for conditional probability.
+ But there's other things too.] "Barring" that for-me-deal-breaking limitation,
+ 'lyxzip2word' can export quite nicely to ODT,
+ except figure sizes are not respected--- whether that's down to Pandoc's ODT writer,
+ or to a limitation of ODT itself,
+ I don't know.
+ You'd need to manually resize all the figures within LO :/ Maybe there's an option in native Pandoc to specify figure sizes,
+ in which case I could probably add code to do that--- but there's no point unless the ODT maths things get fixed.
+\end_layout
+
+\begin_layout Section
+How it works
+\end_layout
+
+\begin_layout Standard
+In LyX,
+ there needs to be a new "File Format" (in Preferences) which is an alias for the existing MSWord format.
+ (The same would apply to any other desired type of output.) Then there needs to be a "Converter" from "Lyx-zip (archive)" format to the new alias.
+ When you pick "File->Export->[new format alias]",
+ LyX will realize that the only way to produce the new format is to first export to Lyx-zip (producing,
+ yes,
+ a zip file),
+ then run the new Converter.
+ The latter launches R,
+ and runs 'lyxport::lyxzip2word' which does everything else,
+ starting from that zip file.
+ "Everything else" means:
+ LyX -> Latex -> pre-process -> Pandoc-tex-to-native -> post-process -> Pandoc-native-to-MSWord-or-other.
+\end_layout
+
+\begin_layout Standard
+This package is very effective despite 
+\emph on
+my
+\emph default
+ limitations:
+ I don't understand Pandoc's internal document structure,
+ I have zero wish to learn new programming languages or arcane file formats,
+ and I have a pretty limited understanding of Latex--- much of the point of LyX being to avoid having to remember all the Latex gruesome details!
+ However,
+ the good news is that LyX exports a highly structured and limited form of Latex (unless you insert really nasty ERT...) which makes it easy to "partially parse" the file using 'grep' etc to find constructs that need attention.
+ Similarly,
+ Pandoc exports a highly-structured "native" format which IMO is much easier to partially-parse than JSON--- for example,
+ indentation is highly consistent,
+ so I can usually find the range of lines to 'gsub' etc by matching indentation size.
+ Then I monkeyed around (a lot) until things worked.
+\end_layout
+
+\begin_layout Standard
+Because I rely on LyX's specific and tidy structuring of its Latex exports,
+ 'lyxzip2word' simply won't work on generic Latex documents.
+\end_layout
+
+\begin_layout Standard
+In slightly more detail,
+ the steps are:
+\end_layout
+
+\begin_layout Standard
+- From inside LyX,
+ LyX exports to LyX-zip,
+ containing all Lyx source files and all graphics in a single file.
+\end_layout
+
+\begin_layout Standard
+- LyX calls a converter script to convert to target format (an "alternative MSWord"),
+ which launches R and runs 'lyxzip2word'.
+\end_layout
+
+\begin_layout Standard
+See 'lyxzip2word' for more detail on the actual conversion steps.
+\end_layout
+
+\begin_layout Section
+Pandoc options
+\end_layout
+
+\begin_layout Standard
+Pandoc uses an output-format-specific "template" to control some aspects of its output,
+ eg fonts.
+ You might want to change the template;
+ for example,
+ Pandoc's default choices for MSWord "bold" and "monospace" look pretty weird to me.
+ I'm not sure how all that works,
+ nor how you tell Pandoc which template file to use (might require modify the export call inside 'lyxzip2word',
+ to allow an argument).
+\end_layout
+
+\begin_layout Section
+Limitations
+\end_layout
+
+\begin_layout Standard
+There are probably lots more than this.
+ This first list seems fairly permanent—
+ it's structural stuff.
+\end_layout
+
+\begin_layout Itemize
+Labels must start with the right prefix for the thing they are labelling:
+ "tab:" for table-floats,
+ "fig:" for figure-floats,
+ "eq:" for equations,
+ "sec/subsec/par:" for sectioning,
+ and "enu:" for lists.
+ LyX will do this automatically for you when you set up a label,
+ unless you perversely force it not to;
+ so,
+ don't do that.
+\end_layout
+
+\begin_layout Itemize
+In order to "count",
+ tables & figures have to be in floats with labelled captions.
+ Each float can contain several actual tables or figures,
+ but only one label.
+ Requiring a label is reasonable;
+ how else would you alert the reader to the existence and role of the table inside the main text?!
+ Numbered sections and numbered equations don't need labels,
+ unless they are cross-referenced.
+\end_layout
+
+\begin_layout Itemize
+Figures:
+ No absolute paths.
+ (Otherwise,
+ Lyx-zip-export uses lots of subfolders and I can't find the files.) I'm not sure about relative paths that go "upwards" either (eg "../sister/image.png").
+\end_layout
+
+\begin_layout Itemize
+Equations inside tables won't be labelled.
+\end_layout
+
+\begin_layout Itemize
+TOC & lists of Figures,
+ etc.
+ Since those are page-number-specific,
+ they won't translate 100% between Latex & MSWord anyway.
+\end_layout
+
+\begin_layout Itemize
+Multi-page figures using subfloat/ContinuedFloat 
+\emph on
+do 
+\emph default
+work,
+ but you shouldn't put anything in the subfloat captions per se because they will not be printed (deliberately,
+ Becoz Reasons).
+ However,
+ you can put things in the main caption of each continuation float.
+\end_layout
+
+\begin_layout Itemize
+Your local 
+\begin_inset Quotes eld
+\end_inset
+
+layouts
+\begin_inset Quotes erd
+\end_inset
+
+ (LyX modules) won't be available unless you copy them somewhere else;
+ see section
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:The-LyX-userdir"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+.
+ This is a LyX bug that might get fixed.
+\end_layout
+
+\begin_layout Standard
+Overall,
+ the biggest limitation is Pandoc's Latex reader,
+ but there are other problems too.
+ For example:
+ the "cases" environment gets spurious RH paren on export,
+ LibreOffice/ODT maths has got problems,
+ ...
+ Anyway,
+ ere are some current limitations that I 
+\emph on
+might
+\emph default
+ fix in future:
+\end_layout
+
+\begin_layout Itemize
+No Boxes (yet).
+ In particular,
+ resizebox and presumably its friends don't work (unfortunately,
+ sinceI often use them to get tables to fit).
+ Perhaps I should add code to delete them from the intermediate Latex files,
+ so that at least something comes out.
+\end_layout
+
+\begin_layout Itemize
+Only one Bibliography is produced.
+\end_layout
+
+\begin_layout Itemize
+Equation numbering is either unsectioned (1,2,3,etc) or uses "section" as the prefix (1.1,etc).
+ In principle it should also accept "chapter" or "part" for the prefix,
+ but I haven't added that yet.
+ Perhaps it should allow user-specified arbitrary prefixes,
+ but it doesn't.
+\end_layout
+
+\begin_layout Itemize
+Equations,
+ Figures,
+ and Tables in Appendices are numbered (A1,A2,...,B1,B2)--- no choice (and it's my preferred way).
+ ?Should I allow user-specced Apx encoding,
+ eg S1,
+ S2 instead of A,
+ B?
+ I don't know how to enforce any of this in LyX/Latex anyway.
+\end_layout
+
+\begin_layout Itemize
+Citations are all author\SpecialChar breakableslash
+year,
+ rather than square-brackety.
+\end_layout
+
+\begin_layout Section
+Requirements
+\end_layout
+
+\begin_layout Standard
+This all needs Pandoc,
+ ImageMagick (which at least on Windows should be installed automatically inside LyX's folder structure),
+ and,
+ of course,
+ LyX itself.
+\end_layout
+
+\begin_layout Standard
+The folders for the executables of Pandoc,
+ LyX,
+ and Rscript should be in the system path.
+ If they aren't normally,
+ then you can tell LyX to set them up automatically just within each LyX session,
+ via "Tools->Preferences->Paths->PATH prefix".
+\end_layout
+
+\begin_layout Standard
+I am going to assume that R_LIBS_USER and so on correctly set the libraries,
+ ie the path(s) to R package folders.
+\end_layout
+
+\begin_layout Section
+The LyX userdir
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:The-LyX-userdir"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+There's a bug in LyX 2.4.2.1 (at least) which means that,
+ if you have a personal LyX userdir (which surely everyone does),
+ it can't be made visible to LyX during the export operation.
+ Normally this doesn't matter,
+ because the userdir is mostly about interactive session stuff such as keybindings,
+ but it does mean that any special modules in your "<userdir>/layouts" folder will not be visible.
+ If you can't live without them,
+ you will just have to copy them to your "<LyX-system-dir>/layouts" folder.
+\end_layout
+
+\begin_layout Standard
+For those who really want to know (be warned:
+ do you really?),
+ the problem is this:
+ 
+\family typewriter
+lyxzip2word
+\family default
+ needs to call a standalone LyX instance in order to export a Latex version of the source.
+ (Most of the needed files--- the LyX source itself,
+ any include-files,
+ graphics--- are first exported into the Lyx-zip archive which is produced automatically,
+ but the Latex version needs to be exported separately.) There is a handy CLI option "lyx --export latex <blah>" for that.
+ Unfortunately,
+ the latter seems to fall over if the userdir is set,
+ either on the invocation line via "-userdir <blahblah>",
+ or via the "LYX_USERDIR_24x" envar.
+ Then LyX will crash with a SIGSEGV (and exit code 11 in Windows).
+ When LyX calls Rscript,
+ it 
+\emph on
+sets
+\emph default
+ that envar first--- which is normally good,
+ coz it means that a converter could look at any userdir settings.
+ However,
+ when Rscript then calls LyX again,
+ it will crash.
+ So Rscript (ie 
+\family typewriter
+lyxzip2word
+\family default
+) has to 
+\emph on
+unset
+\emph default
+ that envar before calling LyX,
+ which means that the second instance of LyX cannot know about your modules.
+ You were warned!
+\end_layout
+
+\begin_layout Section
+FAQ
+\end_layout
+
+\begin_layout Description
+Q:
+ 
+\emph on
+Why did you use R rather than writing a series of 
+\emph default
+Pandoc
+\emph on
+ filters in SDGL to translate FSDOIG format,
+ like you're supposed to?
+\end_layout
+
+\begin_layout Description
+A:
+ Because I know R,
+ and I have no interest in learning SDGL nor figuring out the intricacies of FSDOIG format.
+ Also,
+ modern R is really good for regexy manipulations--- people often don't realize that.
+\end_layout
+
+\begin_layout Description
+Q:
+ 
+\emph on
+You clearly had to fix lots of issues.
+ Why didn't you report them as bugs and wait for someone else to sort them out,
+ like a logical systematic person would?
+\end_layout
+
+\begin_layout Description
+A:
+ Because I needed this for my own purposes,
+ and fairly quickly.
+ Other people are busy,
+ and might not have the same view of what constitutes a "bug" or "something worth fixing" as I do (fair enough).
+ Like people say:
+ 
+\begin_inset Quotes eld
+\end_inset
+
+if you want something done properly,
+ do it yourself
+\begin_inset Quotes erd
+\end_inset
+
+.
+ That said,
+ I really ought to get round to reporting the bugs at some point--- but reporting bugs is quite time-consuming.
+ If you try exporting 
+\begin_inset Quotes eld
+\end_inset
+
+eqntest1.lyx
+\begin_inset Quotes erd
+\end_inset
+
+ with LyX's built-in MSWord exporter,
+ you'll get some idea...
+\end_layout
+
+\begin_layout Description
+Q:
+ 
+\emph on
+Your approach based on counting indents etc is terribly fragile and Offensive To Logic.
+ It is much better to build entire parse trees and then transmogrify the glorts using percortical DeMoivre contextual fermions.
+\end_layout
+
+\begin_layout Description
+A:
+ Errr,
+ maybe so.
+ But my approach works,
+ and it works 
+\emph on
+now
+\emph default
+,
+ and 
+\emph on
+I
+\emph default
+ need it now!
+\end_layout
+
+\begin_layout Description
+Q:
+ 
+\emph on
+Hmmm,
+ I prefer to write all my documents in raw Latex because it is the Only True Way for ninth-level ninjas like myself;
+ GUIs like LyX are for lesser mortals,
+ monotremes,
+ slime moulds,
+ etc.
+ However,
+ I reluctantly concede that 
+\family typewriter
+lyxport
+\family default
+ does a good job of exporting to MSWord,
+ and I note that it actually starts from a Latex file (as exported by LyX).
+ Can I make use of it on my own Latex files?
+\end_layout
+
+\begin_layout Description
+A:
+ How very gracious of you.
+ But to answer your question:
+ no,
+ not directly on general Latex files.
+ There might be other tools Out There for that.
+ 
+\family typewriter
+lyxport
+\family default
+ relies on the tightly-structured flavour of Latex exported by LyX.
+ Your only chance would be to import your Latex into LyX,
+ then export.
+ It 
+\emph on
+might
+\emph default
+ all work,
+ but expect pain.
+\end_layout
+
+\begin_layout Description
+Q:
+ 
+\emph on
+Is this really a FAQ?
+\end_layout
+
+\begin_layout Description
+A:
+ Do I look like Mickey Sodding Mouse?
+\end_layout
+
+\end_body
+\end_document
