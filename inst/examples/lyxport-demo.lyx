@@ -3,7 +3,7 @@
 \begin_document
 \begin_header
 \save_transient_properties true
-\origin D:/temp/rtest/
+\origin D:/r2.0/lyxport/inst/examples/
 \textclass article
 \use_default_options true
 \begin_modules
@@ -114,6 +114,25 @@ Mark Bravington,
  November 2024
 \end_layout
 
+\begin_layout Standard
+This document tests the abilities of 
+\family typewriter
+lyxport
+\family default
+ to handle cross-referencing and numbering and citations and appendices and so on.
+ You can try exporting it from LyX to MSWord,
+ both with LyX's built-in converter,
+ and with 
+\family typewriter
+lyxport
+\family default
+.
+ The document evolved from my original tests and notes,
+ and so the contents might seem a bit odd...
+ but this is all about style,
+ not content!
+\end_layout
+
 \begin_layout Section
 Biblio info:
  housekeeping
@@ -121,8 +140,9 @@ Biblio info:
 
 \begin_layout Standard
 Somewhere in this file,
- there needs to be bibliography information,
- like this:
+ there needs to be information on how to format the bibliography,
+ ie what CSL style file to use.
+ Like this:
 \end_layout
 
 \begin_layout Standard
@@ -201,7 +221,7 @@ LatexCommand tableofcontents
 
 \begin_layout Standard
 Because it's a local bibliography (just a file in the same folder as this one—
- name start 
+ note the 
 \begin_inset Quotes eld
 \end_inset
 
@@ -209,9 +229,8 @@ Because it's a local bibliography (just a file in the same folder as this one—
 \begin_inset Quotes erd
 \end_inset
 
- above),
- I also need something like this,
- to make sure it gets passed on during the export process.
+) I also need to make sure it gets passed on during the export process,
+ like this:
  (Look at 
 \begin_inset Quotes eld
 \end_inset
@@ -224,26 +243,12 @@ lyxport-docu
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
+\begin_inset Note Comment
 status open
 
 \begin_layout Plain Layout
-
-
-\backslash
-ifdefined
-\backslash
-theundefinable
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
 \begin_inset CommandInset include
-LatexCommand lstinputlisting
+LatexCommand verbatiminput
 filename "journal-of-applied-genetics.csl"
 literal "false"
 
@@ -252,24 +257,33 @@ literal "false"
 
 \end_layout
 
-\begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-fi
-\end_layout
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-If you export this file to PDF (or just do Document->View) you won't see the ERT or the include-listing.
+If the CSL was installed 
+\begin_inset Quotes eld
+\end_inset
+
+globally
+\begin_inset Quotes erd
+\end_inset
+
+ (see 
+\begin_inset Quotes eld
+\end_inset
+
+lyxport-docu
+\begin_inset Quotes erd
+\end_inset
+
+...) I wouldn't need that.
+\end_layout
+
+\begin_layout Standard
+If you export this file to PDF (or just do Document->View) you won't see the ERT or the verbatim-include.
  In fact the same goes for exporting to MSWord,
  but they have to be in the LyX source for export-to-MSWord to work properly.
 \end_layout

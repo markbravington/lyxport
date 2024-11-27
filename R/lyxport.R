@@ -338,9 +338,9 @@ function( panfile){
 r"--{
   Latex citations are well fucked up by pandoc!
   
-  - citep (parens round all): OK with single or xtuple
+  - citep (parens round all): OK with single or xtuple, except missing commas before date
   - citet (parens round date):  OK with SINGLE refs, but not with xtuple eg   Nonk & Ponk (2013; Palsbøll et al., 1997)
-    - citealp: adds spurious wrapping parens around everything
+    - citealp: adds spurious wrapping parens around everything, loses commas before date
     - citealt:
       -- does not drop commas like it should
       -- adds spurious params around the date only
@@ -365,6 +365,30 @@ r"--{
   end_sqstr[ not1liner] <- endsq[ match_after( 
       nind[ start_sqstr[ not1liner]], nind[ endsq], first_plaus_end)]
 
+  preadd_commas <- function( frag){
+      # frag is some lines from pan
+      # Append comma to last string before each date
+       # Ignore any risk of all-one-liners...
+       if( length( frag)==1){ # one-liner
+         frag <- gsub( '(" +, +Space +, +"[0-9]+)', ',\\1', frag)
+       } else {
+         strlines  <- grep( ' Str "', frag)
+         datelines <- grep( '"[0-9]+', frag)
+         strlines <- strlines %except% datelines
+         prev_strlines <- strlines[ findInterval( datelines, strlines)]
+         frag[ prev_strlines] <- sub( '" *$', ',"', frag[ prev_strlines])
+       }
+       
+     return( frag)
+     }
+
+  # citep
+  for( i in grep( ' Str ".*\\*\\*FIXCITEP\\*\\*"', pan)){
+     iblok <- findInterval( i, start_sqstr)+1
+     strblock <- start_sqstr[ iblok] : end_sqstr[ iblok]
+     pan[ strblock] <- preadd_commas( pan[ strblock])
+  }
+
   # citet
   for( i in grep( ' Str ".*\\*\\*FIXCITET\\*\\*"', pan)){
      iblok <- findInterval( i, start_sqstr)+1
@@ -387,13 +411,16 @@ r"--{
   for( i in grep( ' Str ".*\\*\\*FIXCITEALP\\*\\*"', pan)){
      iblok <- findInterval( i, start_sqstr)+1
      s <- start_sqstr[ iblok]
-     e <- end_sqstr[ iblok]
+     e <- e0 <- end_sqstr[ iblok]
      if( e==s) e <- e+1 # cozza e-1 below
      
      # citealp: removing wrapping parens
      pan[ s] <- sub( '(', '', pan[ s], fixed=TRUE)
      # Replace _final_ paren only, tho shouldn't be others
      pan[ e-1] <- sub( '(.*)[)]', '\\1', pan[ e-1])
+     
+     # Commas done last, coz parens need to be sorted out first
+     pan[ s:e0] <- preadd_commas( pan[ s:e0]) # keep one-liners on one line
   }
 
   # citealt
@@ -625,7 +652,7 @@ stopifnot( file.exists( file.path( origdir, zipfile)))
 "lyxprefhack" <-
 function( userdir=NULL){
   if( is.null( userdir)){
-    cat( 'LyX user dir (should contain your local "preferences" file): ')
+    cat( 'LyX user dir (where your local "preferences" file is; get from "Help->About LyX"; single backslashes are OK): ')
     userdir <- readline()
   }
     
@@ -1425,12 +1452,13 @@ return( slurp)
 
 "presortout_cites" <-
 function( tex){
-  # pandoc skrooz up citations horribly, except citep
-  # citet bad
+  # pandoc skrooz up citations horribly 
+  # citet bad, citep & citealp missing commas
   # citealp and citealt particularly egregious
   # Mark them in Latex, so they can be recognized post pandoc
   
   tex <- tex |> 
+      xgsub( '(\\\\citep[{])', '**FIXCITEP**\\1') |>
       xgsub( '(\\\\citet[{])', '**FIXCITET**\\1') |>
       xgsub( '(\\\\citealp[{])', '**FIXCITEALP**\\1') |>
       xgsub( '(\\\\citealt[{])', '**FIXCITEALT**\\1')

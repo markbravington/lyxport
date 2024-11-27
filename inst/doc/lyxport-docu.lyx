@@ -125,6 +125,11 @@ lyxport
  documentation
 \end_layout
 
+\begin_layout Author
+Mark Bravington,
+ November 2024
+\end_layout
+
 \begin_layout Section
 Overview
 \end_layout
@@ -150,15 +155,22 @@ MS Word Open Office XML
 lyxport
 \family default
  does proper cross-referencing including tables,
- figures (correctly sized),
+ figures,
  lists,
- equations;
- and it gets the appendices and bibliography all Working Nicely.
+ equations;,
+ appendices,
+ and bibliography;
+ and it sorts out a few other quirks too.
  Most of the heavy lifting is still done by Pandoc,
- as in LyX's built-in export option;
- but Pandoc--- wonderful though it is!--- doesn't get everything right even with well-known filters (as you have probably discovered yourself by now,
+ as in LyX's built-in export option.
+ However,
+ Pandoc--- wonderful though it is!--- doesn't get everything right even with well-known filters (as you have probably discovered yourself by now,
  else you mightn't be reading this).
- So the package contains a lot of 
+ So 
+\family typewriter
+lyxport
+\family default
+ contains a lot of 
 \emph on
 my
 \emph default
@@ -166,7 +178,7 @@ my
 \emph on
 you 
 \emph default
-lots of manual post-tinkering.
+lots of manual post-fiddling.
 \end_layout
 
 \begin_layout Standard
@@ -198,7 +210,7 @@ To see the features,
 \begin_inset Quotes eld
 \end_inset
 
-examples/eqntest1.lyx
+examples/lyxport-demo.lyx
 \begin_inset Quotes erd
 \end_inset
 
@@ -287,7 +299,7 @@ nolink "false"
 
 ).
  However,
- there are general limitations on the input LyX,
+ there are general limitations on usable LyX features,
  some of which are documented below.
 \end_layout
 
@@ -326,11 +338,11 @@ name "sec:Bibliographies"
 
 \begin_layout Standard
 Citations seem to work fine,
- ie whatever you specify in LyX for the PDF version also appears in the Word version (after a 
+ ie whatever you specify in LyX for the PDF version also appears in the Word version (which took me a 
 \emph on
 lot
 \emph default
- of hacking on my part!).
+ of hacking!).
  But for the bibliography itself,
  Pandoc does not understand "styles" in the same way that biber/biblatex does (or whatever animal of the Latex zoo it should be;
  I don't understand this stuff,
@@ -359,43 +371,13 @@ https://editor.citationstyles.org/searchByExample
 lyxport
 \family default
  (which will then tell Pandoc) about the CSL.
- Here's two options
-\begin_inset Foot
-status open
-
-\begin_layout Plain Layout
-If you are reading this document in LyX,
- note that these are not real ERT—
- they are actually program listings inside red framed boxes.
- And the 
-\begin_inset Quotes eld
-\end_inset
-
-include
-\begin_inset Quotes erd
-\end_inset
-
- box is a fake graphic.That's because they are not 
-\begin_inset Quotes eld
-\end_inset
-
-for real
-\begin_inset Quotes erd
-\end_inset
-
- in this document.
- Don't copy-and-paste these;
- just put appropriate stuff in ERTs yourself.
-\end_layout
-
-\end_inset
-
-.
+ Here's two options (which won't appear if you export this to PDF or,
+ for that matter,
+ MSWord):
 \end_layout
 
 \begin_layout Standard
-\begin_inset listings
-inline false
+\begin_inset ERT
 status open
 
 \begin_layout Plain Layout
@@ -413,8 +395,7 @@ or
 \end_layout
 
 \begin_layout Standard
-\begin_inset listings
-inline false
+\begin_inset ERT
 status open
 
 \begin_layout Plain Layout
@@ -432,15 +413,15 @@ The first—
  i.e.,
  with no path—
  is generally better;
- the CSL file is available for 
+ the CSL file is available 
 \begin_inset Quotes eld
 \end_inset
 
-global
+globally
 \begin_inset Quotes erd
 \end_inset
 
- use by 
+ for use by 
 \family typewriter
 lyxport
 \family default
@@ -460,41 +441,26 @@ locally
 \end_inset
 
 ,
- in the same folder as the LyX document that's mentioning it.
+ ie in the same folder as the LyX document that's mentioning it.
  In that case,
- you'll need some extra ERT and to insert the file (Insert->File->Child document,
- type 
-\begin_inset Quotes eld
-\end_inset
-
-Verbatim
-\begin_inset Quotes erd
-\end_inset
-
- or 
-\begin_inset Quotes eld
-\end_inset
-
-Program Listing
-\begin_inset Quotes erd
-\end_inset
-
-) to ensure it is available during export,
- like this.
+ you'll also need to insert the file as a Verbatim child document inside a Comment,
+ like this (again,
+ only visible inside the LyX version of this file):
 \end_layout
 
 \begin_layout Standard
-\begin_inset listings
-inline false
+\begin_inset Note Comment
 status open
 
 \begin_layout Plain Layout
+\begin_inset CommandInset include
+LatexCommand verbatiminput
+filename "journal-of-applied-genetics.csl"
+literal "false"
+
+\end_inset
 
 
-\backslash
-ifdefined
-\backslash
-theundefinable
 \end_layout
 
 \end_inset
@@ -503,35 +469,9 @@ theundefinable
 \end_layout
 
 \begin_layout Standard
-\begin_inset Graphics
-	filename fake-include.png
-	lyxscale 40
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-inline false
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-fi
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The ERT stops the CSL file itself from appearing in the rendered document (eg in PDF form),
- but it's still included in the zip file during File->Export->Lyx-zip.
+The Comment prevents the contents of the CSL file from appearing in the rendered document (eg in PDF form),
+ but the mention of a child-document tricks LyX into including the CSL file during File->Export->Lyx-zip (which is done automatically for you,
+ as the first step in conversion to MSWord etc).
 \end_layout
 
 \begin_layout Section
@@ -542,7 +482,14 @@ Other formats
 My requirement is for MSWord,
  so that's what I've concentrated on.
  Things might or might not work in other formats;
- you can experiment inside R with the 
+ almost all the work in 
+\family typewriter
+lyxport
+\family default
+ is in generating a nice native-Pandoc document,
+ and the final export step is just up to Pandoc,
+ so there is a good chance other output formats will work at least reasonably.
+ You can experiment inside R with the 
 \family typewriter
 outext
 \family default
@@ -555,9 +502,17 @@ panoutopts
 lyxzip2word
 \family default
 .
- Almost all the work is in generating a nice native-Pandoc document,
- and the final export step is just up to Pandoc,
- so there is a good chance things will work.
+ First,
+ you will need to export your test document from LyX as a 
+\begin_inset Quotes eld
+\end_inset
+
+LyX archive
+\begin_inset Quotes erd
+\end_inset
+
+ (lyxzip).
+ 
 \end_layout
 
 \begin_layout Standard
@@ -799,9 +754,16 @@ Equations,
 \end_layout
 
 \begin_layout Itemize
+Lists always use LyX's default numbering hierarchy,
+ eg 1-a-i-A.
+ And there's no support for Enumerate-Resume yet.
+\end_layout
+
+\begin_layout Itemize
 Citations are all author\SpecialChar breakableslash
 year,
  rather than square-brackety.
+ You can control citation appearance in the usual way.
 \end_layout
 
 \begin_layout Section
@@ -945,6 +907,24 @@ if you want something done properly,
 .
  That said,
  I really ought to get round to reporting the bugs at some point--- but reporting bugs is quite time-consuming.
+ I tried lots of Pandoc options involving 
+\family typewriter
+citeproc
+\family default
+,
+ 
+\family typewriter
+eqnos
+\family default
+,
+ 
+\family typewriter
+crossref
+\family default
+,
+ and writen options,
+ and just could not get things to behave,
+ but I didn't record the failures in detail.
  If you try exporting 
 \begin_inset Quotes eld
 \end_inset

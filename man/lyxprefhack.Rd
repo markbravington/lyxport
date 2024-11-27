@@ -7,12 +7,12 @@
 }
 \arguments{\item{ userdir}{Where your config files live; see section 2 of LyX's "Customization" manual. R{} will prompt you for it if you don't set the parameter, so you can copy it from "Help->About" in LyX; single backslashes are OK.}
 }
-\value{Overwrites the "preferences" file (unless there's no change required), after backing up the old one to "old_preferences<N>" (guaranteed not to overwrite any existing backup). Copies one file from the R{} installation to LyX's "<userdir>/doc" ("lyxport-docu.lyx") and one to LyX's "<userdir>/examples" ("lyxport-demo.lyx").
+\value{Overwrites the "preferences" file (unless there's no change required), after backing up the old one to "old_preferences<N>" (guaranteed not to overwrite any existing backup). Adds a "lyxport" option to "Help->Specific manuals", in the file "ui/stdmenus.inc", again making a backup of the latter if there's any change. Copies one file from the R{} installation to LyX's "<userdir>/doc" ("lyxport-docu.lyx") and one set of files to LyX's "<userdir>/examples/lyxport" ("lyxport-demo.lyx" and associated files).
 }
 \details{
 To enable automatic export from LyX, you need to add two Preference settings inside LyX, either manually or by editing the "preferences" file in your LyX Userdir. The function \code{\link{lyxprefhack}} will attempt to do the latter, at your own risk.
 
-The two settings can be accessed from the "Tools->Preferences->File Handling" menu. First, define a new File Format, which should a copy of LyX's built-in "MS Word Open Office XML" but with a different name. The only fields you need are:
+The two settings can instead be set manually inside LyX, from the "Tools->Preferences->File Handling" menu. First, define a new File Format, which should be a copy of LyX's built-in "MS Word Open Office XML" but with a different name. The only fields you absolutely need are:
 
 \itemize{
 \item Format name: MSWord (lyxport)
@@ -27,7 +27,7 @@ Second, you need to define a Converter, as follows:
 \itemize{
 \item From: Lyx Archive (zip) - \emph{not} from straight LyX!
 \item To: MSWord (lyxport) - ie the name of the new Format
-\item Converter: Rscript --no-save --no-restore --verbose -e lyxport::lyxzip2word(FROM_LYX=TRUE) $$i $$r $$p 1 > docxconv.log 2>&1
+\item Converter: \code{Rscript --no-save --no-restore --verbose -e lyxport::lyxzip2word(FROM_LYX=TRUE) $$i $$r $$p 1 > docxconv.log  2>&1}
 }
 
 When the converter runs, it will write a logfile into LyX's temporary folder, which unfortunately is a bit hard to find if things go wrong (if they don't, you don't need to find it). Weirdly, if you try to put the logfile into the "main" folder (ie where source and export live), by using "$$r/<something" after the redirect, then LyX says it can't execute the command...
