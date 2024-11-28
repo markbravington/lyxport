@@ -904,8 +904,12 @@ name "fig:oobl-goobl"
 
 \end_layout
 
+\begin_layout Section
+Citations
+\end_layout
+
 \begin_layout Standard
-words and more via 
+Words and more via 
 \begin_inset CommandInset citation
 LatexCommand citet
 key "AAAtest"
@@ -926,7 +930,29 @@ literal "false"
 \end_layout
 
 \begin_layout Standard
-We can also put the whole thing directly into parens,
+Or we can drop all parens and commas,
+ with citealt:
+ eg 
+\begin_inset CommandInset citation
+LatexCommand citealt
+key "AAAtest,CCCtest,BBBtest"
+literal "false"
+
+\end_inset
+
+ or 
+\begin_inset CommandInset citation
+LatexCommand citealt
+key "AAAtest"
+literal "false"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+We can also auto-put the whole thing directly into parens,
  via citep 
 \begin_inset CommandInset citation
 LatexCommand citep
@@ -947,7 +973,12 @@ literal "false"
 \end_layout
 
 \begin_layout Standard
-This is citealp:
+This is my favourite:
+ citealp,
+ with commas but without its own parentheses.
+ I have helpfully added braces for,
+ errr,
+ clarity:
  {
 \begin_inset CommandInset citation
 LatexCommand citealp
@@ -956,7 +987,7 @@ literal "false"
 
 \end_inset
 
-} or 
+} or {
 \begin_inset CommandInset citation
 LatexCommand citealp
 key "AAAtest,BBBtest,CCCtest"
@@ -964,29 +995,7 @@ literal "false"
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-Or we can drop the commas,
- with citealt:
- eg 
-\begin_inset CommandInset citation
-LatexCommand citealt
-key "AAAtest,CCCtest,BBBtest"
-literal "false"
-
-\end_inset
-
- or 
-\begin_inset CommandInset citation
-LatexCommand citealt
-key "AAAtest"
-literal "false"
-
-\end_inset
-
-.
+}
 \end_layout
 
 \begin_layout Standard

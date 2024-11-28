@@ -439,7 +439,7 @@ r"--{
   }
 
   # Elim the warnings!
-  pan <- gsub( '*\\*\\*FIXCITE(T|ALP|ALT)\\*\\*', '', pan)
+  pan <- gsub( '*\\*\\*FIXCITE(P|T|ALP|ALT)\\*\\*', '', pan)
   # Trim empty lines --- be careful of eg "(**FIXCITE ..."
   pan <- pan[ !grepl( '^ *(, +)?Str ""$', pan)]
 
