@@ -502,7 +502,7 @@ The second option,
 \begin_inset Quotes erd
 \end_inset
 
-,
+ to specify the path locally,
  assumes you store the CSL file 
 \begin_inset Quotes eld
 \end_inset
@@ -543,8 +543,6 @@ literal "false"
 The Comment prevents the contents of the CSL file from appearing in the rendered document (eg in PDF form),
  but the mention of a child-document tricks LyX into including the CSL file during File->Export->Lyx-zip (which is done automatically for you,
  as the first step in conversion to MSWord etc).
- (If I'd realized how Comments actually work,
- I would have used that instead of ERT for CSL-specification in the first place.)
 \end_layout
 
 \begin_layout Section
