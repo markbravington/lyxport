@@ -863,81 +863,7 @@ nolink "false"
 \end_layout
 
 \begin_layout Standard
-\begin_inset Float figure
-placement document
-alignment document
-wide false
-sideways false
-status open
-
-\begin_layout Plain Layout
-\begin_inset Caption Standard
-
-\begin_layout Plain Layout
-oobl goobl
-\begin_inset CommandInset label
-LatexCommand label
-name "fig:oobl-goobl"
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Plain Layout
-\begin_inset Graphics
-	filename nice-gs-Rplot009.png
-	lyxscale 20
-	scale 20
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Section
-Citations
-\end_layout
-
-\begin_layout Standard
-I have put hashes around the citations here,
- a la #someone sometime#,
- to clarify what's in the document vs what Biblatex/Pandoc do.
- The basic citet does this:
- #
-\begin_inset CommandInset citation
-LatexCommand citet
-key "AAAtest"
-literal "false"
-
-\end_inset
-
-# or #
-\begin_inset CommandInset citation
-LatexCommand citet
-key "AAAtest,BBBtest,EEEtest"
-literal "false"
-
-\end_inset
-
-#.
- 
-\end_layout
-
-\begin_layout Standard
-Or we can drop all parens and commas,
- with citealt:
- eg #
+#
 \begin_inset CommandInset citation
 LatexCommand citealt
 key "AAAtest,DDDtest,CCCtest,BBBtest"
@@ -945,7 +871,7 @@ literal "false"
 
 \end_inset
 
-# or #
+ or 
 \begin_inset CommandInset citation
 LatexCommand citealt
 key "AAAtest"
@@ -953,7 +879,7 @@ literal "false"
 
 \end_inset
 
-#.
+.
  Note that I have suppressed citation silliness in PDF with Biblatex options 
 \family typewriter
 uniquename=false
@@ -969,28 +895,7 @@ uniquelist=false
 lyxzip2word()
 \family default
  is to do the same thing;
- see Lyxport's LyX help if you 
-\emph on
-don't
-\emph default
- want that.
- Experiment with 
-\begin_inset Quotes eld
-\end_inset
-
-timid
-\begin_inset Quotes erd
-\end_inset
-
- and 
-\begin_inset Quotes eld
-\end_inset
-
-false
-\begin_inset Quotes erd
-\end_inset
-
- options!
+ see Lyxport's LyX help if you don't want that.
 \end_layout
 
 \begin_layout Standard
@@ -999,7 +904,7 @@ status open
 
 \begin_layout Plain Layout
 
-%% tidy_initials false
+%% tidy_initials timid
 \end_layout
 
 \end_inset
@@ -1009,7 +914,7 @@ status open
 
 \begin_layout Standard
 We can also auto-put the whole thing directly into parens,
- via citep #
+ via citep 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "AAAtest"
@@ -1017,7 +922,7 @@ literal "false"
 
 \end_inset
 
-# or #
+ or 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "AAAtest,BBBtest"
@@ -1025,14 +930,17 @@ literal "false"
 
 \end_inset
 
-#.
+.
 \end_layout
 
 \begin_layout Standard
 This is my favourite:
  citealp,
  with commas but without its own parentheses.
- #
+ I have helpfully added braces for,
+ errr,
+ clarity:
+ {
 \begin_inset CommandInset citation
 LatexCommand citealp
 key "AAAtest"
@@ -1040,7 +948,7 @@ literal "false"
 
 \end_inset
 
-# or #
+} or {
 \begin_inset CommandInset citation
 LatexCommand citealp
 key "AAAtest,BBBtest,CCCtest"
@@ -1048,7 +956,7 @@ literal "false"
 
 \end_inset
 
-#.
+}.
 \end_layout
 
 \begin_layout Standard

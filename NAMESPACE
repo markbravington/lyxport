@@ -1,7 +1,9 @@
 useDynLib( lyxport, .registration=TRUE)
 export( "lyxprefhack",
 "lyxzip2word",
-"requote_lyx")
+"requote_lyx",
+"tex2utf8",
+"tidy_initials")
 import( mvbutils)
 import( Rcpp)
 

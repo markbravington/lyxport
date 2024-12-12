@@ -319,11 +319,21 @@ function(
   
   # In each title, are desired capitals
   # already curlified? If any are, presumably all are
-  need_caseprot <- grepl( "[ /('-][A-Z]", titles)
+  # Complication of eg \emph{Lynx lynx}...
+  # This isn't perfect, becoz laziness
+  # NB this takes the input caps _seriously_ ! so you gotta sentence-case
+  # yer bibs except where you Really Want Capitals
+  
+  # If first char is lowercase, presumably deliberate (eg software)
+  low1st <- substring( titles, 1, 1) %in% letters
+  need_caseprot <- grepl( "(([\\]emph *[{])|[ /('a-z0-9-])[A-Z]", titles)
   titles[ need_caseprot] <- titles[ need_caseprot] |> 
-    xgsub( "([ /('-])([A-Z]+)", ' \\1{\\2}') |>
+    xgsub( "(([\\]emph *[{])|[ /('a-z0-9-])([A-Z][A-Z0-9]*)", '\\1{\\3}') |>
     xsub( ' -', '-', fixed=TRUE) |> 
     xsub( '- ', '-', fixed=TRUE)
+  titles[ low1st] <- sprintf( '{%s}%s', 
+      tolower( substring( titles[ low1st], 1, 1)),
+      substring( titles[ low1st], 2))
   newbib[ titlines[ need_caseprot]] <- sprintf( 
       '  title={%s},', titles[ need_caseprot])
   
@@ -350,6 +360,7 @@ r"--{
   NB you _can_ get all-on-one-liners :(
   eg [ Str "(Branch," , Space , Str "2006)" ]
 
+    Also, biblatex options such as uniquename=false and uniquelist=false don't seem to be respected. I find those two so useful that there's an option to auto-enforce them...
 }--"
 
   # Find all blocks that might contain pandoc's attempt at citation-text
@@ -378,7 +389,7 @@ r"--{
          prev_strlines <- strlines[ findInterval( datelines, strlines)]
          frag[ prev_strlines] <- sub( '" *$', ',"', frag[ prev_strlines])
        }
-       
+       frag <- sub( ',,+', ',', frag)
      return( frag)
      }
 
@@ -400,10 +411,11 @@ r"--{
      # between xtuple citations.
      
      pan[ strblock] <- pan[ strblock] |>
-         xgsub( '( +),( +)', '\\1#\\2') |>   # keep structural commas         xgsub( ',', '') |>                  # zap other commas
-         xgsub( '[(]*([0-9]+)[)]*', '(\\1)') |> # xtuple parens -> single
+         xgsub( '( +),( +)', '\\1#\\2') |>    # keep structural commas         xgsub( ',', '') |>                  # zap other commas
+         xgsub( '[(]*([0-9]+[a-z]*)[)]*', '(\\1)') |> # xtuple parens -> single
          xgsub( '[(]([A-Za-z])', '\\1') |>    # no parens before words
-         xgsub( '( +)#( +)', '\\1,\\2')       # replace structural commas
+         xgsub( '( +)#( +)', '\\1,\\2') |>    # replace structural commas
+         xgsub( '([(][0-9]+[a-z])[)],', '\\1,') # hackfix 2003a,b in same citation...
   }
 
   # citealp
@@ -434,9 +446,9 @@ r"--{
      pan[ strblock] <- pan[ strblock] |>
          xgsub( '^( *),', '\\1#') |>    # keep structrual commas at SOL
          xgsub( '[(),]', '') |>         # zap parens and other commmas
-         xgsub( '([a-zA-Z.]);', '\\1') |>   # zap semis after words (keep after numbers)
+         xgsub( '((?<![0-9])[a-zA-Z.]);', '\\1') |>   # zap semis after words (keep after numbers)
          xgsub( '^( *)#', '\\1,')       # replace structural commmas   
-  }
+    }
 
   # Elim the warnings!
   pan <- gsub( '*\\*\\*FIXCITE(P|T|ALP|ALT)\\*\\*', '', pan)
@@ -445,6 +457,32 @@ r"--{
 
   writeLines( pan, panfile)
 invisible( pan)
+}
+
+
+"get_refdoc" <-
+function( tex, outext, refdir){
+  # Search for lines with %% Pandoc reference-doc/template 
+  # Similar to last part of handle_bib()
+  
+  refdoc <- grep( '^ *%% *[Pp]andoc +(reference-doc|template) +', tex, 
+      value=TRUE) %such.that% endsWith( ., '.' %&% outext)
+  if( !length( refdoc)){
+return( '')
+  }
+  
+  # Use last if several!
+  refdoc <- sub( '.*[Pp]andoc +', '', trimws( tail( refdoc, 1))) 
+  
+  # Sometimes ya need template, sometimes it's reference-doc
+  tempordoc <- sub( '^([^ ]+) .*', '\\1', refdoc)
+  
+  # What is the actual file, and where does it live?
+  refdoc <- sub( '.* +', '', refdoc)
+  refdoc <- if( startsWith( refdoc, './')) substring( refdoc, 3) else 
+        file.path( refdir, refdoc)
+  refdoc <- sprintf( '--%s=%s', tempordoc, refdoc)
+return( refdoc)
 }
 
 
@@ -479,9 +517,28 @@ return( tex)
 
 
 "handle_bib" <-
-function( texlines, refdir){
+function( texlines, refdir, uniqnaml, fixinit){
   ## Bibliography (if required): 
   # First, gotta find 'em
+  
+  # Get ready for bibhack, if specified
+  bibhack_fun <- identity
+  start_bibhack <- rev( grep( '(?i)^ *%% +Bibhack', texlines))[1] # use last
+  if( !is.na( start_bibhack)){
+    end_bibhack <- grep( '(?i)^ *%% End bibhack', texlines)
+    end_bibhack <- (end_bibhack %such.that% (. > start_bibhack))[1]
+
+    if( !is.na( end_bibhack)){
+      bibhack_fun <- try( eval( parse( text=
+          texlines[ (start_bibhack+1) %upto% (end_bibhack-1)])[[1]]))
+    }
+
+stopifnot( 
+        bibhack_fun %is.a% 'function',
+        length( args( bibhack_fun)) == 1
+    )
+  }
+        
   biblines <- which( startsWith( texlines, '\\addbibresource{'))
   printbib <- which( texlines == '\\printbibliography')
 
@@ -491,13 +548,6 @@ function( texlines, refdir){
     # if unmodded bib was used, then...
     # resourcio <- sprintf( '--citeproc --resource-path %s/bibtex/bib',
     #    refdir)
-    if( is.null( refdir)){
-      # According to the internet...
-      refdir <- system2( 'kpsewhich', '-var-value TEXMFHOME', stdout=TRUE)
-      if( !nzchar( refdir)){
-stop( "Can't find TEXMFHOME from kpsewhich")      
-      }
-    }
 
     # but Pandoc "Citations" section says that titles will be sentence-cased
     # unless uppers are protected. So, protect 'em... 
@@ -510,6 +560,12 @@ stop( "Can't find TEXMFHOME from kpsewhich")
     cites <- find_cites( texlines)
     bibble <- fixup_bib_title_case( bibfiles, cites, 
         prefolder=file.path( refdir, 'bibtex', 'bib'))  
+    if( uniqnaml && (fixinit %not.in% c( 'false', 'F'))){
+      bibble <- tex2utf8( bibble) # not needed otherwise
+      bibble <- tidy_initials( bibble, gungho= (fixinit=='gungho') )
+    }
+    bibble <- bibhack_fun( bibble)
+    
     writeLines( bibble, 'bibble.bib')
     texlines[ biblines[ 1]] <- '\\addbibresource{bibble.bib}'
     if( length( biblines)>1){ # avoid replacing ALL LINES !!!
@@ -519,8 +575,8 @@ stop( "Can't find TEXMFHOME from kpsewhich")
     # ... and prepare to tell pandoc to use that file
     resourcio <- sprintf( '--citeproc --resource-path .')
     
-    # Citation format:
-    CSL <- grep( '^ *%% *CSL +', texlines)[1]
+    # Citation format: use last one, if several
+    CSL <- rev( grep( '^ *%% *CSL +', texlines))[1]
     if( !is.na( CSL)){
       CSL <- trimws( sub( '^ *%% *CSL +', '', texlines[ CSL]))
       CSL <- if( startsWith( CSL, './')) substring( CSL, 3) else 
@@ -853,14 +909,35 @@ stopifnot( ok==0, file.exists( tex_file))
   nonum <- sum( startsWith( texlines, '\\section*{'))
   yesnum <- sum( startsWith( texlines, '\\section{'))
 
-  l <- handle_bib( texlines, refdir) # mvbutils::mlocal() and mvbutils::extract.named() are simpler, but...
+  if( is.null( refdir)){
+    # We may not need to actually know refdir (ie if no CSS and no template)
+    # But I think the stuff below always *should* work as long as Latex
+    # is installed, so Just Do It.
+    # According to the internet...
+    refdir <- system2( 'kpsewhich', '-var-value TEXMFHOME', stdout=TRUE)
+    if( !nzchar( refdir)){
+stop( "Can't find TEXMFHOME from kpsewhich")      
+    }
+  }
+
+  # Biblatex options that I like:
+  uniqnaml <- any( grepl( 'unique(name|list)=false', texlines))
+  fixinit <- rev( grep( '^%% +tidy_initials +(gungho|timid|false|F)( |$)', texlines, value=TRUE))[1]
+  fixinit <- if( is.na( fixinit)) 'gungho' else named( cq( gungho, timid, false, 'F'))[ 
+      sub( '^%% +tidy_initials +([^ ]+) *.*', '\\1', fixinit)]
+
+  # mvbutils::mlocal() and mvbutils::extract.named() are simpler than
+  # the manual extraction next, but for the sake of "clarity"...
+  l <- handle_bib( texlines, refdir, uniqnaml, fixinit) 
   texlines <- l$texlines
   resourcio <- l$resourcio
   
+  # Any Pandoc output refdoc/template?
+  refdoc <- get_refdoc( texlines, outext, refdir) 
   texlines <- handle_appendices_tex( texlines)
   texlines <- presortout_cites( texlines)
   texlines <- xref_numlists( texlines)
-    
+
 ## Eqn labels (into tables, plus resolve xrefs to them)
   # Modify the tex file
   texlines <- prepare_eqn_labels( texlines, eqalignfix=TRUE)
@@ -891,7 +968,8 @@ stopifnot( ok==0, file.exists( tex_file))
   pandoc_file <- sub( 'tex$', 'pandoc', tex_file)
 
   # Need "-s" (standalone), else title/author/abstract disappear...
-  pandoc_native_args <- sprintf( '-s %s %s %s %s -f latex -t native -o %s',
+  pandoc_native_args <- sprintf( 
+      '-s %s %s %s %s -f latex -t native -o %s',
       tex_file,
       pandoc_xref,
       if( yesnum > nonum) '--number-sections' else '', 
@@ -908,7 +986,7 @@ stopifnot( ok==0, file.exists( tex_file))
   manually_xref( texlines, pandoc_file)
 
 ## pandoc screws up most Latex citation styles, with extra/wrong parens...
-  fixup_fuxup( pandoc_file)
+  fixup_fuxup( pandoc_file) # uniqnaml
 
 ## Fix equation-table colwidths
   eqalignfix( pandoc_file)
@@ -933,10 +1011,11 @@ stopifnot( ok==0, file.exists( tex_file))
 
 ## Convert native to docx
   docx_file <- sub( 'tex$', outext, tex_file)    
-  pandoc_docx_args <- sprintf( '%s %s -f native %s -t %s -o %s',
+  pandoc_docx_args <- sprintf( '%s %s -f native %s %s -t %s -o %s',
       if( verbose) '--log=pandoc.log --verbose' else '',
       if( natnum_pandoc && (yesnum > nonum)) '--number-sections' else '', 
       pandoc_file,
+      refdoc,
       panoutopts %&% if( natnum_pandoc && (yesnum > nonum)) '+native_numbering',
       docx_file
     )
@@ -1233,6 +1312,53 @@ return()
   
   pan <- massrep( pan, list( papx[1], pbib:refend), list( c( refs, pan[ papx[1]]), character()))
 writeLines( pan, panf)
+}
+
+
+"partequiv" <-
+function( D){
+  # D is a matrix of T or F, saying whether i & j are deffo diff or _maybe_ same
+  n <- nrow( D)
+  class <- rep( 0L, n)
+
+  D[ is.na( D)] <- 0L
+  
+  
+  # Split into deffo diffs (some may not be classified)
+  ec <- list()
+  l <- list( 1:n)
+  while( length( l)){
+    top <- l[[1]]
+    Dll <- D[top,top,drop=FALSE]
+    if( sum( Dll)==0){
+      # These are all equiv
+      ec <- c( ec, l[1])
+      l <- l[-1]
+    } else {
+      # Split this class
+      cDl <- colSums( Dll)
+      first <- match( FALSE, cDl==0) # gotta be one
+      l <- c( list( top[ which( Dll[,first]==0)], top[ which( Dll[,first] > 0)]), l[-1])
+    }
+  }
+  
+  # While unclassified remain: loop over deffo diff classes, each time incorping any 
+  # unclassified that don't clash with this class
+    
+  
+  eclass <- rep( 0, n)
+  eclass[ unlist( ec)] <- rep( seq_along( ec), times=lengths( ec))
+
+  # Any unclassed ones? Move to first compatible eclass
+  for( u in which( eclass==0)){
+    cDu <- colSums( D[,u,drop=FALSE])
+    cDu[u] <- 99 # yourself doesn't count!
+    ok1 <- match( 0L, cDu)
+    eclass[ u] <- eclass[ ok1]
+  }
+  
+
+return( eclass)
 }
 
 
@@ -2160,6 +2286,277 @@ r"--{
   
   writeLines( pan, panfile)
 invisible( pan)
+}
+
+
+"tex2utf8" <-
+function( tex, file=NULL, outfile=NULL, debrace=FALSE){
+## tex is eg the lines in a dot-bib file
+
+# This table comes from https://arxiv.org/edit-user/tex-accents.php
+
+  if( !is.null( file)){
+    tex <- readLines( file)
+  }
+  
+  converto <- r"--{
+      Ä   \"A ä   \"a Á   \'A á   \'a Ȧ   \.A ȧ   \.a Ā   \=A
+      ā   \=a Â   \^A â   \^a À   \`A à   \`a Ą   \k{A} ą   \k{a}
+      Å   \r{A} å   \r{a} Ă   \u{A} ă   \u{a} Ǎ   \v{A} ǎ   \v{a} Ã   \~A
+      ã   \~a Ć   \'C ć   \'c Ċ   \.C ċ   \.c Ĉ   \^C ĉ   \^c
+      Ç   \c{C} ç   \c{c} Č   \v{C} č   \v{c} Ď   \v{D} ď   \v{d} Ë   \"E
+      ë   \"e É   \'E é   \'e Ė   \.E ė   \.e Ē   \=E ē   \=e
+      Ê   \^E ê   \^e È   \`E è   \`e Ȩ   \c{E} ȩ   \c{e} Ę   \k{E}
+      ę   \k{e} Ĕ   \u{E} ĕ   \u{e} Ě   \v{E} ě   \v{e} Ġ   \.G ġ   \.g
+      Ĝ   \^G ĝ   \^g Ģ   \c{G} ģ   \c{g} Ğ   \u{G} ğ   \u{g} Ǧ   \v{G}
+      ǧ   \v{g} Ĥ   \^H ĥ   \^h Ȟ   \v{H} ȟ   \v{h} Ï   \"I ï   \"i
+      Í   \'I í   \'i İ   \.I Ī   \=I ī   \=i Î   \^I î   \^i
+      Ì   \`I ì   \`i Į   \k{I} į   \k{i} Ĭ   \u{I} ĭ   \u{i} Ǐ   \v{I}
+      ǐ   \v{i} Ĩ   \~I ĩ   \~i Ĵ   \^J ĵ   \^j Ķ   \c{K} ķ   \c{k}
+      Ǩ   \v{K} ǩ   \v{k} Ĺ   \'L ĺ   \'l Ļ   \c{L} ļ   \c{l} Ľ   \v{L}
+      ľ   \v{l} Ń   \'N ń   \'n Ņ   \c{N} ņ   \c{n} Ň   \v{N} ň   \v{n}
+      Ñ   \~N ñ   \~n Ö   \"O ö   \"o Ó   \'O ó   \'o Ȯ   \.O
+      ȯ   \.o Ō   \=O ō   \=o Ô   \^O ô   \^o Ò   \`O ò   \`o
+      Ő   \H{O} ő   \H{o} Ǫ   \k{O} ǫ   \k{o} Ŏ   \u{O} ŏ   \u{o} Ǒ   \v{O}
+      ǒ   \v{o} Õ   \~O õ   \~o Ŕ   \'R ŕ   \'r Ŗ   \c{R} ŗ   \c{r}
+      Ř   \v{R} ř   \v{r} Ś   \'S ś   \'s Ŝ   \^S ŝ   \^s Ş   \c{S}
+      ş   \c{s} Š   \v{S} š   \v{s} Ţ   \c{T} ţ   \c{t} Ť   \v{T} ť   \v{t}
+      Ü   \"U ü   \"u Ú   \'U ú   \'u Ū   \=U ū   \=u Û   \^U
+      û   \^u Ù   \`U ù   \`u Ű   \H{U} ű   \H{u} Ų   \k{U} ų   \k{u}
+      Ů   \r{U} ů   \r{u} Ŭ   \u{U} ŭ   \u{u} Ǔ   \v{U} ǔ   \v{u} Ũ   \~U
+      ũ   \~u Ŵ   \^W ŵ   \^w Ÿ   \"Y ÿ   \"y Ý   \'Y ý   \'y
+      Ȳ   \=Y ȳ   \=y Ŷ   \^Y ŷ   \^y Ź   \'Z ź   \'z Ż   \.Z
+      ż   \.z Ž   \v{Z} ž   \v{z}
+      å   {\aa} Å   {\AA} æ   {\ae} Æ   {\AE} Ð   {\DH} ð   {\dh} đ   {\dj}
+      Đ   {\DJ} ð   {\eth}  Ð   {\ETH}  ı   {\i}  ł   {\l}  Ł   {\L}  ŋ   {\ng}
+      Ŋ   {\NG} Ø   {\O}  ø   {\o}  œ   {\oe} Œ   {\OE} ß   {\ss} þ   {\th}
+      Þ   {\TH}
+    }--"
+    
+  charz <- converto |> trimws() |> strsplit( '[ \n]+') |> unlist() |> matrix( ncol=2, byrow=TRUE)
+
+  # Generic accentors that accept any Latin character in {}
+  # If these 
+  # From https://tex.stackexchange.com/tags/accents/info
+  accentors <- r"--{
+      \` (grave accent): à
+      \' (acute accent): á
+      \^ (circumflex or “hat”): â
+      \" (umlaut or dieresis): ä
+      \~ (tilde or “squiggle”): ã
+      \= (macron or “bar”): ā
+      \. (dot accent): ȧ
+      \u (breve accent): ă
+      \v (háček or “check”): ǎ
+      \H (long Hungarian umlaut): ő
+      \t (tie-after accent): a͡
+      \c (cedilla): ş
+      \d (dot-under accent): ạ
+      \b (bar-under accent): ο̩
+      \k (ogonek): ą
+    }--"
+  accentors <- accentors |> trimws() |> strsplit( '\n') |> unlist() |> trimws() |> xsub( ' .*', '')
+  accentors <- accentors |> trimws() |> strsplit( '\n') |> unlist() |>  trimws() |> xsub( ' .*', '')
+  all_accent_markers <- unique( substring( accentors, 2, 2)) # should be unique anyway
+  all_accent_markers <- c( all_accent_markers %except% '^', '^') # gotta come last in grep
+  all_nonch <- all_accent_markers %except% c( letters, LETTERS)
+
+  all_accents <- c( outer( accentors, c( letters, LETTERS), function( x, y) sprintf( '%s{%s}', x, y)))
+  which_utf8 <- match( sub( '[{](.)[}]', '\\1', all_accents), charz[,2], 0)
+  
+  # For those that aren't in the main table above, IDNK the UTF8 equiv, so don't include them
+  # Otherwise, eg \~{n} is an alias for \~n that Latex knows about
+  all_known_accents <- all_accents[ which_utf8>0]
+  which_utf8 <- which_utf8[ which_utf8>0]
+  
+  accent_alias_charz <- cbind( charz[ which_utf8], all_known_accents)
+  charz <- rbind( charz, accent_alias_charz)
+  
+  utf8 <- charz[,1]
+  latex <- charz[,2]
+  
+  # Try to speed things up. Most lines don't have such things
+  slash <- grep( '\\', tex, fixed=TRUE)
+  poss <- slash[ grep( sprintf( '[\\][%s]', paste( unique( substring( latex, 2, 2)), collapse='')), 
+      tex[ slash])]
+  
+  texposs <- as.cat( tex[ poss]) # for ease of display while debugging...
+  # Fix illegal stuff like {\'}e...
+  texposs <- gsub( sprintf( '[{]([\\][%s])[}]([a-zA-Z])', paste( all_accent_markers, collapse='')), 
+      '\\1{\\2}', texposs)
+      
+  # and special-case the REMARKABLY TEDIOUS \'\i for \'ı etc. This is valid (?) for all over-the-char accents
+  # which I think includes all the non-char ones. Below-the-char, one should distinguish between i and ı ...
+  texposs <- gsub( sprintf( '[\\]([%s])[\\]([ijIJ])', paste( all_nonch, collapse='')), r"{\\\1\2}", texposs)
+  
+  for( i in seq_along( utf8)){
+    texposs <- gsub( latex[ i], utf8[ i], texposs, fixed=TRUE)
+  }
+
+  if( debrace){
+    # Remove superfluous braces around single (UTF8) letters. I think braces no longer matter, except at start of word?
+    # and they can confuse tidy_initials(). Superfluous braces around pure-Latin characters are probably OK, coz they
+    # are unlikely to be in author names. 
+    texposs <- gsub( sprintf( '(?<=[^. -])[{]([%s])[}]', paste( unique( utf8), collapse='')), '\\1', texposs, perl=TRUE)
+  }
+  
+  tex[ poss] <- texposs
+  
+  if( !is.null( outfile)){
+    writeLines( tex, outfile)
+  }
+return( tex)
+}
+
+
+"tidy_initials" <-
+function( bib, file=NULL, outfile=NULL, gungho=TRUE){
+## What this really needs, is a converter from Latex specials direct to UTF8
+## Otherwise, the upper-lower case spotting won't work perfectly
+  if( !is.null( file)){
+    bib <- readLines( file)
+  }
+
+  authl <- grep( '^ *[Aa]uthor *=', bib)
+  
+  # Assume that authors with the same surname and first initial are the same
+  # unless they have different first NAMES or different 2nd-plus initials
+  # (missing does not count)
+  
+  # Strip cladding
+  auths <- bib[ authl] |>
+      trimws() |> 
+      xsub( '^[^"{]*["{]', '') |>
+      xsub( '["}] *(,?) *$', '')
+
+  auths <- strsplit( auths, ' +and +')
+  nauthper <- lengths( auths) # per line
+  auths <- trimws( unlist( auths))
+  surnames <- trimws( xsub( auths, ',.*', '')) # always exists
+  givens <- trimws( xsub( auths, '.*,', '')) # might not...
+  
+  weirdy <- startsWith( surnames, '{') & endsWith( surnames, '}') # {IWC}
+  givens[ weirdy] <- ''
+
+  # J. Paul Getty III...
+  roman_numerals <- as.roman( 1:20) # gotta stop somewhere...
+  surnames[ !weirdy] <- sub( sprintf( ' +(%s)$', 
+      paste( roman_numerals, collapse='|')), '_\\1', surnames[ !weirdy])
+  spacy <- grepl( ' ', surnames) & !weirdy # Mark Brav
+  givens[ spacy] <- sub( ' +[^ ]+$', '', givens[ spacy]) # all but last
+  surnames[ spacy] <- sub( '.* +', '', surnames[ spacy]) # last only
+  givens[ surnames==auths] <- ''
+
+  # \p{Lu} is uppercase letter (Unicode-ready) in PCRE regex; \p{Ll} lowercase; \p{L} either.  
+  allCAPS <- grepl( '^\\p{Lu}+$', givens, perl=TRUE)
+  lgivens <- rep( list(), length( auths))
+  lgivens[ allCAPS] <- strsplit( givens[ allCAPS], '')
+  lgivens[ !allCAPS] <- strsplit( givens[ !allCAPS], '([.]| ) *')
+  names( lgivens) <- surnames
+  ngiv <- lengths( lgivens)
+  
+  # Hiroshi==H==<nothing>, Hiroshi != Helen
+  gungho_defdif <- function( x, y) !( x == y | is.na( x == y)) # missing compatible with anything
+  timid_defdif <- function( x, y) xor( is.na( x), is.na( y)) | (!is.na( x==y) & x!=y) # missing only with missing
+  
+  defdif <- if( gungho) gungho_defdif else timid_defdif
+  
+  extendo <- function( x) c( x, rep( '', maxlen-length( x)))
+  
+  multisurtab <- table( surnames[ !weirdy]) %such.that% (.>1)
+  for( m in names( multisurtab)){
+    # Equivalence classes...
+    # Ambiguous if there's A.B.Nothing and A.Nothing and A.C.Nothing...
+    # ... I will go with A.Nothing == A.B.Nothing, and leave user to fix!
+    # But make sure it's not otherwise order-dependent (ie A/AB/AC; both AB and AC match A, 
+    # but they dont match each other)
+    
+    ism <- which( surnames==m)
+    nm <- length( ism)
+    maxlen <- max( ngiv[ ism])
+    if( !maxlen){
+  next
+    } # mononomic
+    
+    givtab <- sapply( lgivens[ ism], extendo)
+    dim( givtab) <- c( maxlen, nm) # in case sapply does not return a matrix; 
+    # ... only needed when maxlen==1, but just FORCE it anyway
+    
+    # Identical ones don't need to be checked
+    pasty <- apply( givtab, 2, paste, collapse='')
+    check_class <- match( pasty, pasty)
+    check <- which( check_class == 1:nm)
+    ncheck <- length( check)
+    
+    if( ncheck>1){
+      # Now it's quite complicated...    
+      givtab <- givtab[, check, drop=FALSE]
+      init <- substring( givtab, 1, 1)
+      init[ !nzchar( init)] <- NA
+      rest <- substring( givtab, 2)
+      rest[ !nzchar( rest)] <- NA
+  
+      # Form equiv classes; 
+      # Always match eg S. and Simon, regardless of gungho; but 
+      # whether to match S.N.Wood and S.Wood depends on gungho.
+      # gungho version is: if not provably different, same class
+      # (with ambiguity re A.Nothing as above)
+      
+      # Which pairwise comps show definite differences?
+      # To make this interesting, minimize loop nesting by vectorization
+      # Basically doing outer() by hand, coz I can't figure out how not to
+      # This is potentially inefficient O(n^2) for prodigiously large 
+      # numbers of authors with same surname... :)
+      
+      ij <- as.matrix( expand.grid( j=1:maxlen, i1=1:ncheck, i2=1:ncheck))
+      dist <- defdif( init[ ij[,c(1,2)]], init[ ij[,c(1,3)]]) + 
+          gungho_defdif( rest[ ij[,c(1,2)]], rest[ ij[,c(1,3)]])
+
+      dist <- dist > 0
+      dim( dist) <- c( maxlen, ncheck*ncheck)
+      dist <- colSums( dist)
+      dim( dist) <- c( ncheck, ncheck)
+      
+      eclass <- partequiv( dist)
+
+      # Form initials-only (but all known initials) for each eclass
+      ues <- unique( eclass)
+      new_givens <- character( length( ues))
+      for( ue in ues){
+        ui <- init[,ue==ues,drop=FALSE]
+        ui[ is.na( ui)] <- ''
+        mnc <- max.col( nchar( ui), ties='first')
+        new_ui <- ui[ cbind( 1:maxlen, mnc)]
+        new_givens[ ue] <- paste( new_ui[ nzchar( new_ui)], collapse='.') %&% '.'
+      }
+      
+      # Gotta replace identical ones, too
+      full_eclass <- eclass[ match( check_class, check_class[ check])]
+      givens[ ism] <- new_givens[ full_eclass]
+    } # if check
+    
+  } # for surname
+
+  # It is simpler to recompose all author lists, than just ones which have changed
+  givens <- gsub( '(\\p{Lu} *)(?![.\\p{Ll}])', '\\1. ', givens, perl=TRUE) # break up strings of unfullstopped initials
+  givens <- gsub( '(\\p{Lu}[.]) +', '\\1', givens, perl=TRUE) # zap spaces between initials
+  surnames[ !weirdy] <- gsub( '_', ' ', surnames[ !weirdy]) # see earlier
+  nicey_names <- sprintf( '%s%s%s', surnames, ifelse( nchar( givens), ', ', ''), givens)
+  per_ref <- split( nicey_names, rep( seq_along( nauthper), nauthper))
+  new_auths <- lapply( per_ref, paste, collapse= ' and ')
+  
+  # replace old author lists, keeping format of line (mindful of terminal commas etc)
+  bib[ authl] <- sprintf( '%s%s%s',
+      sub( '^([^"{]*["{]).*', '\\1', bib[ authl]),
+      new_auths,
+      sub( '.*(["}] *(,?)) *$', '\\1',  bib[ authl])
+    )
+  
+  if( !is.null( outfile)){
+    writeLines( bib, outfile)
+  }
+  
+return( bib)  
 }
 
 
