@@ -1,0 +1,2 @@
+1.0.157: Fixed some boring CRAN-check warnings. However, I have deliberately *not* fixed the one about non-portable characters in R files--- that's the whole bloody *point* of raw strings here. Grrr.
+

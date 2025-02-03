@@ -38,6 +38,5 @@ When the converter runs, it will write a logfile into LyX's temporary folder, wh
 \dontrun{
 lyxprefhack()
 }
-misc
 }
 \keyword{misc}

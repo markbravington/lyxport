@@ -66,6 +66,5 @@ The steps in the conversion process are (actually there's more than this, this l
 # to a non-MSWord format, via eg...
 lyxzip2word( 'lyxport-demo.zip', outext='html')
 }
-misc
 }
 \keyword{misc}

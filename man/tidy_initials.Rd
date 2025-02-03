@@ -18,7 +18,7 @@ The merging rules, which depend slightly on the \code{gungho} argument, are as f
 
 In order to make this surprisingly tricky programming task a bit easier, \code{tidy_initials} calls \code{\link{tex2utf8}}, which you might find useful in its own right.
 }
-\usage{tidy_initials( bib, gungho = TRUE)
+\usage{tidy_initials( bib, file=NULL, outfile=NULL, gungho=TRUE)
 }
 \arguments{
 \item{ bib}{character vector containing the bibliography contents. Use one of \code{bib} or \code{file}.}

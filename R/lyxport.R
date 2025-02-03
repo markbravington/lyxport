@@ -10,6 +10,28 @@ function( libname, pkgname){
 }
 
 
+"captured" <-
+function( s, m, idx=m@capture.names %except% '') {
+  if( is.character( m) && length( s)) { # then it's a regex in waiting
+    m <- gregexpr( m, s)[[1]]
+  }
+  
+  # NB m may already have been set to zero-length
+  if( length( s) && length( m) && m[1]>0) {
+    start <- m@capture.start[,idx]
+    res <- matrix( substring( s, start, start + m@capture.length[,idx]-1), ncol=length( idx))
+  } else {
+    res <- matrix( '', nrow=0, ncol=length( idx))
+  }
+  # Bloody R bug stops this working in 1-row case:
+  # dimnames( res)[[2]] <- idx
+  res <- as.data.frame( res, stringsAsFactors=FALSE)
+  if( is.character( idx))
+    names( res) <- idx
+return( res)
+}
+
+
 "check_lyx_pandoc" <-
 function( 
   stop_or_warn= stop,
@@ -779,7 +801,7 @@ stop( "Can't find FORMAT and/or CONVERTERS section: preferences file looks malfo
     # Only insert new ones if not obso there!
     upref <- multinsert( upref, at=c( last_form, last_conv)[ mm==0], c( newdef, newconvo)[ mm==0])
 
-    oprefiles <- dir( userdir, patt='^old_preferences[0-9]+$')
+    oprefiles <- dir( userdir, pattern='^old_preferences[0-9]+$')
     oprefile <- if( !length( oprefiles)){
         'old_preferences1'
       } else {
@@ -1359,6 +1381,22 @@ function( D){
   
 
 return( eclass)
+}
+
+
+"perl.style.regex" <-
+function( envir=parent.frame()) {
+  # All regex funcs should use Perl syntax, unless fixed=TRUE, and assume byte-only
+  for( rfun in cq( sub, gsub, grep, grepl, regexpr, gregexpr)) {
+    f <- get( rfun, baseenv())
+    formals(f)$useBytes <- TRUE
+    formals(f)$perl <- quote( !fixed)
+    assign( rfun, f, envir)
+  }
+  
+  tm <- `%that.match%` # from mvbutils
+  environment( tm) <- envir # so it uses perl-style
+  assign( '%that.match%', tm, envir=envir)
 }
 
 
@@ -2005,7 +2043,7 @@ r"--{
   # But, preference any other (ie the original)
   
   for( i in seq_along( files)){
-    file <- dir( dirname( files[ i]), patt=basename( files[ i]), 
+    file <- dir( dirname( files[ i]), pattern=basename( files[ i]), 
         full.names=TRUE)
     if( length( file)>1){
       file <- (file %that.dont.match% '[.]eps$')[1]
@@ -2037,8 +2075,11 @@ function( fullpath) {
   lines <- readLines( fullpath)
   plines <- paste( lines, collapse='\n')
   
-  captured <- ADR:::captured
-  ADR:::perl.style.regex() # avoid perl=T throughout
+  # captured() and perl.style.regex() used to be in ADR package
+  # Now copied here
+  # captured <- ADR:::captured
+  perl.style.regex() # avoid perl=T throughout
+  
 
 ##################
   # \include, \input, \externaldocument
@@ -2281,7 +2322,7 @@ r"--{
   
   # Those duplicated captions...
   if( any( dupz)){
-    pan <- massrep( pan, at=lrepz, replist=newlz)
+    pan <- massrep( pan, atlist=lrepz, replist=newlz)
   }
   
   writeLines( pan, panfile)
@@ -2525,7 +2566,7 @@ function( bib, file=NULL, outfile=NULL, gungho=TRUE){
       for( ue in ues){
         ui <- init[,ue==ues,drop=FALSE]
         ui[ is.na( ui)] <- ''
-        mnc <- max.col( nchar( ui), ties='first')
+        mnc <- max.col( nchar( ui), ties.method='first')
         new_ui <- ui[ cbind( 1:maxlen, mnc)]
         new_givens[ ue] <- paste( new_ui[ nzchar( new_ui)], collapse='.') %&% '.'
       }
