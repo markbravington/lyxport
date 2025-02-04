@@ -1,6 +1,6 @@
-lyxport-package                                 How to use the lyxport package
-lyxprefhack                                     Prepare LyX for better export to MSWord
-lyxzip2word                                     Convert LyX to MSWord or other format
-requote_lyx                                     Clean up LyX quotation marks
-tex2utf8                                        Transform Biblatex bibliography to native UTF8 characters
-tidy_initials                                   Consistent author names in dot-bib files
+lyxport-package                         How to use the lyxport package
+lyxprefhack                             Prepare LyX for better export to MSWord
+lyxzip2word                             Convert LyX to MSWord or other format
+requote_lyx                             Clean up LyX quotation marks
+tex2utf8                                Transform Biblatex bibliography to native UTF8 characters
+tidy_initials                           Consistent author names in dot-bib files

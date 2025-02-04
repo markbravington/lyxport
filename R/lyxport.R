@@ -227,13 +227,14 @@ invisible( pan)
 
 "find_cites" <-
 function( tex){
-  citelines <- grep( r"(\\cite[a-zA-Z]*[{].*[}])", tex)
+  # Allow for superfluous (?) "*" after \cite
+  citelines <- grep( r"(\\cite[a-zA-Z]*[*]?[{].*[}])", tex)
   if( !length( citelines)){
 return( character())
   }
   
   tex <- tex[ citelines]
-  m <- gregexpr( r"(\\cite[a-zA-Z]*[{]([^}]*)[}])", tex)
+  m <- gregexpr( r"(\\cite[a-zA-Z]*[*]?[{]([^}]*)[}])", tex)
   cites <- regmatches(  tex, m) |> unlist() |> 
       sub( '.*[{]', '', x=_) |> sub( '[}].*', '', x=_)
   
@@ -642,7 +643,11 @@ warning( 'No "magick" in PATH or in LyX--- won\'t be able to scale images')
     } # but carry on... (?wise?)
   }
  
-  lyxver <- system2( lyxec, '-version', stdout=TRUE)
+  r"--{
+  Try to find LyX version. Works from R directly, but somehow not when R is launched from inside LyX, which is when we actually need it. Sigh. 4/2/2025: add "-n" in desperation.
+  }--"
+  
+  lyxver <- system2( lyxec, '-n -version', stdout=TRUE) 
   if( nzchar( dbglyx)){ cat( 'lyxver: '); print( lyxver)}
   
   if( !length( lyxver) || is.character( lyxver) || any( is.na( lyxver))){
@@ -729,7 +734,28 @@ stopifnot( file.exists( file.path( origdir, zipfile)))
 
 "lyxprefhack" <-
 function( userdir=NULL){
-  if( is.null( userdir)){
+## A few sanity checks on file availability first...
+  lyxec <- Sys.which( 'lyx')
+  if( !nzchar( lyxec)){
+stop( r"--{
+    First, make sure the LyX executable is in your PATH--- right now it isn't, according to 'Sys.which('lyx')'}--" |> trimws())
+  }
+
+  while( is.null( userdir)){ # allow 'break'
+    r"--{
+    The best way for a user to control this, is via envar "LYX_USERDIR_**x" where "*" is replaced by the major+minor version, eg "23" or (currently) "24". Many users *won't* have done that, but if they have, we should honour it...
+    }--"
+    lyxver <- system2( lyxec, '-n -version', stdout=TRUE) |>
+        grep( '^LyX ', x=_, value=TRUE) |> 
+        _[1] |> 
+        xsub( '^[^ ]* +([0-9])[.]([0-9]+).*', '\\1\\2')
+    if( !is.na( lyxver)){
+      userdir <- Sys.getenv( sprintf( 'LYX_USERDIR_%sx', lyxver))
+      if( nzchar( userdir)){
+  break
+      }
+    }
+  
     cat( 'LyX user dir (where your local "preferences" file is; get from "Help->About LyX"; single backslashes are OK): ')
     userdir <- readline()
   }
@@ -738,6 +764,22 @@ stopifnot(
   file.exists( defile <- file.path( userdir, 'lyxrc.defaults')),
   file.exists( uprefile <- file.path( userdir, 'preferences'))
 )
+
+  # Check that userdir has menu file (might not have been copied yet)
+  uidir <- file.path( userdir, 'ui')
+  if( !dir.exists( uidir)){
+    dir.create( uidir)
+  }
+  menfile <- file.path( uidir, 'stdmenus.inc')
+  if( !file.exists( menfile)){
+    r"--{
+    Get systemdir programmatically. Might be possible by launching Lyx and asking it to Do Something, and parsing the output. But I'm not sure; rabbit hole alert!
+    }--"
+    sysdir <- file.path( lyxec, '../../Resources')
+    if( !file.copy( file.path( sysdir, 'ui/stdmenus.inc'), menfile)){
+stop( sprintf( 'Could not find/copy "stdmenus.inc" into "%s/ui" folder', userdir))
+    }
+  }
 
   def <- readLines( defile) %that.match% '^\\\\Format +[^ ]+ +docx '
   
@@ -837,7 +879,6 @@ stop( "Can't find FORMAT and/or CONVERTERS section: preferences file looks malfo
       overwrite=TRUE)
 
   # Add item to Help submenu
-  menfile <- file.path( userdir, 'ui/stdmenus.inc')
   men <- readLines( menfile)
   
   lyxport_item <- 'Item "lyxport" "help-open lyxport-docu"'
@@ -889,17 +930,22 @@ function(
 ){
   housekeeping() # set paths, move files, ...
   
-  owd <- setwd( tempdir)
+  owd <- setwd( tempdir) # might move deeper in a moment
   on.exit( setwd( owd), add=TRUE)
 
   is_lyx <- grepl( '(?i)[.]lyx$', zipfile)
   if( !is_lyx){
-    unzip( zipfile, overwrite=TRUE) # overwrites by default
+    contents <- unzip( zipfile, overwrite=TRUE) # overwrites by default
+    # lyx_file <- sub( '(?i)zip$', 'lyx', zipfile)
+    # ... might not work with foldery stuff
+    toplyx <- grep( sub( '.zip$', '[.]lyx$', basename( zipfile)), contents, 
+        value=TRUE)[1]
+    setwd( dirname( toplyx))
+    lyx_file <- basename( toplyx) 
   }
-  lyx_file <- sub( '(?i)zip$', 'lyx', zipfile)
 
 ## Export to Tex, using Lyx itself
-  # Seems to despite warning about "'py' not recognized"
+  # Seems to work despite warning about "'py' not recognized"
 
   scatn( 'About to texify from %s', lyx_file)
   tex_file <- sub( '(?i)lyx$', 'tex', lyx_file)
@@ -1001,6 +1047,9 @@ stop( "Can't find TEXMFHOME from kpsewhich")
   
   scatn( 'About to convert to native pandoc')
   test1 <- system2( 'pandoc', pandoc_native_args)
+  if( test1 != 0){
+stop( "Initial conversion to pandoc failed--- check the log")
+  }
 
 ## pandoc-crossref does not work reliably :(
 # Also, since I'm avoiding number-sections at the docx stage (coz it fux Apx)
@@ -1076,10 +1125,11 @@ function( tex, panfile, texfile=NULL){
   }
 
   # ... plus all un-numbered pure sections after apx-start
-  # which are top-level apxes
-  apxlines  <- which( startsWith( tex, '\\section*{Appendix ')) %such.that%
+  # which are top-level apxes. I think specific Appendices should be "section*" but 
+  # this should also catch "part*".
+  apxlines <- grep( '^[\\](section|part)[*][{]Appendix', tex) %such.that%
       (.>apx_start)
-  tex[ apxlines] <- sub( 'section*', 'section', tex[ apxlines], fixed=TRUE)
+  tex[ apxlines] <- sub( '(section|part)*', 'section', tex[ apxlines], fixed=TRUE)
       
   # All numbered (sub)sections...
   iseclines <- grep( '^\\\\(sub)*(section|paragraph)[*]?[{]', tex)
@@ -1116,7 +1166,11 @@ function( tex, panfile, texfile=NULL){
   # Generate secnumbers de novo
   # Should have EMPTY secnumbers for unnumbered, eg bibliography
   # to greatly simplify logic of adding secnumbers (if any) to pandoc format
+  
+  # Hacky stuff if this is child doco exported on its own--- put some 0's in...
+  # ... not sure if that "solves" everything...
   ctr <- character( nsecs)
+  preves <- integer(0) # only relevant if directly processing a child
   for( idepth in 0 %upto% max( subdepth)){
     these <- which( is_num & (subdepth==idepth))
 
@@ -1126,7 +1180,8 @@ function( tex, panfile, texfile=NULL){
       
       # Count sibsecs with same parent: 1, 2, 3, ...
       sib_since_parent <- unlist( lapply( partab, seq_len))
-      ctr[ these] <- sprintf( '%s.%i', ctr[ preves[ parent]],
+      ctr[ these] <- sprintf( '%s.%i', 
+          if( length( preves)) ctr[ preves[ parent]] else '0',
         sib_since_parent)
     } else { # section (top-level)
       ctr[ these] <- as.character( seq_along( these)) # 1 upwards
@@ -1312,14 +1367,23 @@ function( x, table, start=rep(1,length( x)), nomatch=NA) {
 function( panf, tex){
 ## Rewrite pandoc-native file 'panf' iff reqd
 
-  tapx <- which( startsWith( tex, '\\section*{Appendix '))
+  if( FALSE){
+    # This from manually_xref()
+    # I'm concerned that Apx sections might not all start with the word "Appendix"...
+    apx_start <- which( tex=='\\appendix')[1] # or NA
+    if( is.na( apx_start)){
+      apx_start <- length( tex)+1 # all secs before "appendix"
+    }
+  }
+
+  tapx <- grep( r"--{^\\(section|part)[*][{]Appendix '}--", tex)
   tbib <- which( tex=='\\printbibliography')
   if( length( tbib)>1){
 warning( "Only one biblio allowed, sorreeee...")
     tbib <- tbib[ 1]
   }
   
-  if( tbib > max( tapx)){
+  if( tbib > max( c( 0, tapx))){ # 0 to stop warning
 return()
   } # no move required
   

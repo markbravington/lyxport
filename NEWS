@@ -1,2 +1,6 @@
+1.0.162: 'lyxprefhack' now tries to deduce "userdir" from the appropriate envar (unless it has been passed as a parameter), before asking the user.
+
+Fixed sectioning (and other) bug(s) when trying to export child document on its own. Probably.
+
 1.0.157: Fixed some boring CRAN-check warnings. However, I have deliberately *not* fixed the one about non-portable characters in R files--- that's the whole bloody *point* of raw strings here. Grrr.
 
