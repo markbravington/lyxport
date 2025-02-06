@@ -1,3 +1,5 @@
+1.0.169: Bugfixes with cross-refs.
+
 1.0.162: 'lyxprefhack' now tries to deduce "userdir" from the appropriate envar (unless it has been passed as a parameter), before asking the user.
 
 Fixed sectioning (and other) bug(s) when trying to export child document on its own. Probably.

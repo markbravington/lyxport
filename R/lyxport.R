@@ -952,7 +952,7 @@ function(
   unlink( tex_file) # thus force lyx to re-export...
 
   ok <- system2( lyxec,
-      sprintf( '-batch %s %s --export latex %s', 
+      sprintf( '-batch %s %s -f all --export latex %s', 
         lyx_file,
         lyx_userdir_info,
         if( nzchar( dbglyx)) sprintf( '-dbg %s', dbglyx) else ''
@@ -1126,10 +1126,10 @@ function( tex, panfile, texfile=NULL){
 
   # ... plus all un-numbered pure sections after apx-start
   # which are top-level apxes. I think specific Appendices should be "section*" but 
-  # this should also catch "part*".
+  # this should also catch "part*". Make them all "numbered" (starless).
   apxlines <- grep( '^[\\](section|part)[*][{]Appendix', tex) %such.that%
       (.>apx_start)
-  tex[ apxlines] <- sub( '(section|part)*', 'section', tex[ apxlines], fixed=TRUE)
+  tex[ apxlines] <- sub( '(section|part)[*]', 'section', tex[ apxlines])
       
   # All numbered (sub)sections...
   iseclines <- grep( '^\\\\(sub)*(section|paragraph)[*]?[{]', tex)
@@ -1645,14 +1645,15 @@ r"--{
     eqlabels <- sub( '.*[{](eq:[^}]*)[}].*', '\\1', slurp[ eqlabel_lines])
 
     # After Appendices, there's deffo a secprefix
-    apxes <- which( startsWith( slurp, '\\section*{Appendix '))
+    apxes <- grep( '^[\\](section|part)[*][{]Appendix ', slurp)
     
-    section_numbered_equations <- match( '\\numberwithin{equation}{section}', slurp, 0)>0
-    if( section_numbered_equations){
+    # Pre-Apxes: turn on sectionized numbering (2.4) etc only after numberwithin{...}, if any
+    secprefix <- rep( '', length( eqlabels))
+    section_numbered_equations <- match( '\\numberwithin{equation}{section}', slurp, 0)
+    if( section_numbered_equations>0){
       numsecs <- which( startsWith( slurp, '\\section{')) %except% apxes
-      secprefix <- findInterval( eqlabel_lines, numsecs) %&% '.'
-    } else {
-      secprefix <- rep( '', length( eqlabels))
+      numinsec <- eqlabel_lines > section_numbered_equations
+      secprefix[ numinsec] <- findInterval( eqlabel_lines[ numinsec], numsecs) %&% '.' # wrong for apxes, fixed next
     }
     fi <- findInterval( eqlabel_lines, apxes)
     secprefix[ fi>0] <- LETTERS[ fi[ fi>0]] # %&% '.' # better sans dot
@@ -1664,7 +1665,9 @@ r"--{
       newlabi <- sprintf( '%s%i', secprefix[ i], ectr) # used to wrap this in parens, but double trouble; now up to user
       slurp[ eqlabel_lines[ i]] <- sub( sprintf( '\\\\label[{]%s[}]', eqlabels[ i]), 
           eqlabprefix %&% newlabi, slurp[ eqlabel_lines[ i]])
-      slurp <- gsub( sprintf( '\\\\ref[{]%s[}]', eqlabels[ i]), newlabi, slurp)
+      slurp <- slurp |> 
+          xgsub( sprintf( '\\\\ref[{]%s[}]', eqlabels[ i]), newlabi) |>
+          xgsub( sprintf( '\\\\eqref[{]%s[}]', eqlabels[ i]), sprintf( '(%s)', newlabi))
     }
   }
 
@@ -1766,8 +1769,7 @@ return( list( pan=pan, numz=seq_along( labz)))
     # I try to avoid nested loops in R, but sometimes...
     for( j in seq_along( tabinaxpi)){
       linx2this <- which( refs==labz[ tabinaxpi][j])
-      numz[ linx2this] <- sprintf( '%s%i', LETTERS[ apxi], 
-          seq_along( tabinaxpi))
+      numz[ linx2this] <- sprintf( '%s%i', LETTERS[ apxi], j)
     }
   }
   

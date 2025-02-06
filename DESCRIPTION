@@ -1,5 +1,5 @@
 Package: lyxport
-Version: 1.0.166
+Version: 1.0.170
 Author: Mark Bravington <markb2@summerinsouth.net>
 Maintainer: Mark Bravington <markb2@summerinsouth.net>
 Imports: mvbutils, Rcpp

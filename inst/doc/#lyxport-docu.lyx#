@@ -1246,7 +1246,11 @@ Appendix title lines should have layout
 \begin_inset Quotes eld
 \end_inset
 
+
+\family typewriter
 section
+\family default
+
 \begin_inset Quotes erd
 \end_inset
 
@@ -1255,7 +1259,11 @@ section
 \begin_inset Quotes eld
 \end_inset
 
+
+\family typewriter
 part
+\family default
+
 \begin_inset Quotes erd
 \end_inset
 
@@ -1268,7 +1276,11 @@ might
 \begin_inset Quotes eld
 \end_inset
 
+
+\family typewriter
 sec:<blah>
+\family default
+
 \begin_inset Quotes erd
 \end_inset
 
@@ -1277,7 +1289,7 @@ sec:<blah>
 
 \end_deeper
 \begin_layout Itemize
-In order to be noticed,
+In order to "count",
  tables & figures have to be in floats with labelled captions.
  Each float can contain several actual tables or figures,
  but only one label.
@@ -1320,23 +1332,29 @@ normal
 \end_inset
 
  graphics file.
- See eg 
+ (Actually,
+ they might already be generated for you when you export from LyX to PDF or whatever;
+ so,
+ you might be able to find the file(s) somewhere in LyX's temporary directory,
+ as shown in 
+\family typewriter
+Help->About_LyX
+\family default
+.
+ I don't know.) See eg 
 \family typewriter
 https://wiki.lyx.org/Tips/UsingTikZ-PGF
 \family default
 .
- [It might in future be possible to smooth this out a 
-\emph on
-bit
-\emph default
-,
- e.g.
- via an ERT with special comments to load a pre-drawn graphic when 
+ It might in future be possible to smooth this out a bit (e.g.
+ use an ERT with 
 \family typewriter
-lyxport
+
+\backslash
+if
 \family default
- is in use.
- Might.]
+ in your LyX docu to decide whether to generate on-the-fly,
+ or use a precalculated option when .
 \end_layout
 
 \begin_layout Itemize
@@ -1401,7 +1419,7 @@ nolink "false"
 \begin_layout Itemize
 Greyed-out text doesn't work (Pandoc doesn't support colored text).
  It's a shame,
- coz that leaves no way to preserve comments-as-comments in the dot-docx version.
+ coz that leaves no way to preserve comments-as-comments in the Docx version.
 \end_layout
 
 \begin_layout Standard
@@ -1511,7 +1529,7 @@ name "sec:The-LyX-userdir"
 \begin_layout Standard
 There's a bug in LyX 2.4.2.1 (at least) which means that,
  if you have a personal LyX userdir (which surely everyone does),
- it can't safely be made visible to LyX during the export operation.
+ it can't be made visible to LyX during the export operation.
  Normally this doesn't matter,
  because the userdir is mostly about interactive session stuff such as keybindings,
  but it does mean that any special modules in your "<userdir>/layouts" folder will not be visible.
@@ -1520,19 +1538,8 @@ There's a bug in LyX 2.4.2.1 (at least) which means that,
 \end_layout
 
 \begin_layout Standard
-The LyX developers know about the bug,
- and apparently a fix is in the works.
- Until then,
- for those who 
-\emph on
-really
-\emph default
- want to know (be warned:
- do you 
-\emph on
-really
-\emph default
-?),
+For those who really want to know (be warned:
+ do you really?),
  the problem is this:
  
 \family typewriter
@@ -1544,27 +1551,10 @@ lyxzip2word
  graphics--- are first exported into the Lyx-zip archive which is produced automatically,
  but the Latex version needs to be exported separately.) There is a handy CLI option "lyx --export latex <blah>" for that.
  Unfortunately,
- the latter can fall over if the userdir is set,
+ the latter seems to fall over if the userdir is set,
  either on the invocation line via "-userdir <blahblah>",
  or via the "LYX_USERDIR_24x" envar.
- (The problem is if there's a 
-\begin_inset Quotes eld
-\end_inset
-
-uistyle
-\begin_inset Quotes erd
-\end_inset
-
- option within the 
-\begin_inset Quotes eld
-\end_inset
-
-preferences
-\begin_inset Quotes erd
-\end_inset
-
- file—
- that's the bug that is being fixed.) Then LyX will crash with a SIGSEGV (and exit code 11 in Windows).
+ Then LyX will crash with a SIGSEGV (and exit code 11 in Windows).
  When LyX calls Rscript,
  it 
 \emph on
@@ -1605,7 +1595,7 @@ A:
  Well,
  yes,
  that's MSWord for you.
- But do look at the stuff above on templates.
+ 
 \end_layout
 
 \begin_layout Description
