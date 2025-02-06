@@ -2,7 +2,7 @@
 \alias{lyxprefhack}
 \title{Prepare LyX for better export to MSWord}
 \description{
-This function should be called just after you install the \pkg{lyxport} package, and you probably won't need to call it again. It modifies your LyX "preferences" file to add better MSWord export, with shortcut "W" in File->Export; see \bold{Details}. It also creates a LyX help file and an example that you can access straight from LyX--- so you may never need to use this package again from R{}, since almost everything you need is accessible from LyX itself. (One exception is if you want to use \code{\link{requote_lyx}} (qv) to sort out quotation-mark problems. Many people will never need it.)
+This function should be called just after you (re)install the \pkg{lyxport} package, and you probably won't need to call it again. It modifies your LyX "preferences" file to add better MSWord export, with shortcut "W" in File->Export; see \bold{Details}. It also creates a LyX help file and an example that you can access straight from LyX--- so you may never need to use this package again from R{}, since almost everything you need is accessible from LyX itself. (One exception is if you want to use \code{\link{requote_lyx}} (qv) to sort out quotation-mark problems. Many people will never need it.)
 
 BTW: make sure LyX is on your PATH first (it surely will be in Linux/Macs, though I can't test it; it probably will be on Windows, but not necessarily. If not, you might have to do something externally to R{}, then restart R{}. I'm not your mother, so you will have to figure that out yourself...
 }
