@@ -816,7 +816,35 @@ stop( sprintf( 'Could not find/copy "stdmenus.inc" into "%s/ui" folder', userdir
     newdef <- paste( newdef, collapse=' ')
   }
 
-  upref <- readLines( uprefile)
+  upref <- oupref <- readLines( uprefile)
+  
+  ## Make sure R is in path...
+  thisR <- commandArgs()[1]
+  prepathl <- startsWith( upref, '\\path_prefix ')
+  prepath <- upref[ prepathl] |> 
+      xsub( '^[^"]+"', '') |> 
+      xsub( '"$', '') |>
+      strsplit( ';', fixed=TRUE) |>
+      _[[1]]
+  nonbuiltin <- !grepl( '$LyXDir', prepath) # don't look here for R
+  
+  if( any( nonbuiltin)){
+    # What filext are we looking for..?
+    mebbe_ext <- sub( '.*([.][^.]+)$', '\\1', basename( thisR))
+    # Look for R or R.exe (or R.godknowswhat on Macs and beyond...)
+    gotR <- file.exists( file.path( prepath[ nonbuiltin], 'R' %&% mebbe_ext))
+    if( any( gotR)){
+      nonbuiltin[] <- FALSE # signal that we need to add
+    }
+  }
+  
+  if( any( nonbuiltin)){
+    prepath <- c( prepath,  dirname( thisR))
+    # Want fwd-slash, and I think spaces are OK
+    # Avoiding normalizePath() here, to preserve symlinks
+    upref[ prepathl] <- sprintf( '\\path_prefix "%s"',
+      paste( gsub( '\\', '/', prepath, fixed=TRUE), collapse=';'))
+  }
   
   format_start <- grep( '^#+ +FORMATS SECTION', upref)[1]
   conv_start <- grep( '^#+ +CONVERTERS SECTION', upref)[1]
@@ -841,8 +869,11 @@ stop( "Can't find FORMAT and/or CONVERTERS section: preferences file looks malfo
     last_conv <- max( format_start+1, grep( '^\\\\converter ', upref))
 
     # Only insert new ones if not obso there!
-    upref <- multinsert( upref, at=c( last_form, last_conv)[ mm==0], c( newdef, newconvo)[ mm==0])
-
+    upref <- multinsert( upref, at=c( last_form, last_conv)[ mm==0], 
+        c( newdef, newconvo)[ mm==0])
+  }
+  
+  if( !identical( upref, oupref)){
     oprefiles <- dir( userdir, pattern='^old_preferences[0-9]+$')
     oprefile <- if( !length( oprefiles)){
         'old_preferences1'

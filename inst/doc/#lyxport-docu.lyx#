@@ -210,7 +210,7 @@ every
 
 \begin_layout Standard
 To see the features,
- do File->Open_example and open 
+ open 
 \begin_inset Quotes eld
 \end_inset
 
@@ -255,32 +255,17 @@ lyxport
 \end_inset
 
  item in LyX's Help menu (this file).
- Test
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-
+ To test things,
+ do File->Open_example and find the Lyxport demo,
+ then try exporting it.
+ (
 \family typewriter
 lyxprefhack
 \family default
  may or may not include its own test;
  currently it doesn't,
  but that might change,
- and I might forget to update this document.
-\end_layout
-
-\end_inset
-
- it by trying to export the 
-\begin_inset Quotes eld
-\end_inset
-
-lyxport-demo.lyx
-\begin_inset Quotes erd
-\end_inset
-
- example mentioned earlier.
+ and I might
 \end_layout
 
 \begin_layout Standard
@@ -322,17 +307,6 @@ lyxzip2word
 
 \begin_layout Subsubsection
 When setup goes wrong
-\end_layout
-
-\begin_layout Standard
-...
- to be added.
- Needless to say,
- it works for 
-\emph on
-me
-\emph default
-...
 \end_layout
 
 \begin_layout Subsection
