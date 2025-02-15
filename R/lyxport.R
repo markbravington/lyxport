@@ -49,16 +49,15 @@ function(
     # Don't use normalizePath() coz it unpacks symlinks
     lyxdir <- gsub( '\\', '/', lyxdir, fixed=TRUE)
     lyxec <- file.path( lyxdir, 'bin', 'lyx')
-    if( !nzchar( Sys.which( lyxec))){ # sneaky old me!
-      stop_or_warn( "No LyX executable in path :(")
-  }
   }else{
     # once again, having correct paths by default makes your life easier ;)
     lyxec <- Sys.which( 'lyx')
   }
-  
-      
-  
+
+  if( !nzchar( Sys.which( lyxec))){ # sneaky old me!
+    stop_or_warn( "No LyX executable in path :(")
+  }
+
   if( !nzchar( Sys.which( 'pandoc'))){ # sneaky old me!
 stop_or_warn( "No pandoc executable in path :(")
   }
