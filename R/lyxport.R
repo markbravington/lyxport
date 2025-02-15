@@ -819,32 +819,39 @@ stop( sprintf( 'Could not find/copy "stdmenus.inc" into "%s/ui" folder', userdir
   upref <- oupref <- readLines( uprefile)
   
   ## Make sure R is in path...
+  # This is *only* an issue on Windows where you are actively discouraged
+  # from doing anything useful and reproducible on the computer.
+  # Any Mac/Linux installation will automatically make R accessible in the
+  # system path because that's a thing that makes your life easier.
+  # so you don't need any of this awkward chutney
   thisR <- commandArgs()[1]
-  prepathl <- startsWith( upref, '\\path_prefix ')
-  prepath <- upref[ prepathl] |> 
-      xsub( '^[^"]+"', '') |> 
-      xsub( '"$', '') |>
-      strsplit( ';', fixed=TRUE) |>
-      _[[1]]
-  nonbuiltin <- !grepl( '$LyXDir', prepath) # don't look here for R
-  
-  if( any( nonbuiltin)){
-    # What filext are we looking for..?
-    mebbe_ext <- sub( '.*([.][^.]+)$', '\\1', basename( thisR))
-    # Look for R or R.exe (or R.godknowswhat on Macs and beyond...)
-    gotR <- file.exists( file.path( prepath[ nonbuiltin], 'R' %&% mebbe_ext))
-    if( any( gotR)){
-      nonbuiltin[] <- FALSE # signal that we need to add
+  if(Sys.info()["sysname"] == "Windows"){
+    prepathl <- startsWith( upref, '\\path_prefix ')
+    prepath <- upref[ prepathl] |> 
+        xsub( '^[^"]+"', '') |> 
+        xsub( '"$', '') |>
+        strsplit( ';', fixed=TRUE) |>
+        _[[1]]
+    nonbuiltin <- !grepl( '$LyXDir', prepath) # don't look here for R
+    
+    if( any( nonbuiltin)){
+      # What filext are we looking for..?
+      mebbe_ext <- sub( '.*([.][^.]+)$', '\\1', basename( thisR))
+      # Look for R or R.exe (or R.godknowswhat on Macs and beyond...)
+      gotR <- file.exists( file.path( prepath[ nonbuiltin], 'R' %&% mebbe_ext))
+      if( any( gotR)){
+        nonbuiltin[] <- FALSE # signal that we need to add
+      }
     }
-  }
-  
-  if( any( nonbuiltin)){
-    prepath <- c( prepath,  dirname( thisR))
-    # Want fwd-slash, and I think spaces are OK
-    # Avoiding normalizePath() here, to preserve symlinks
-    upref[ prepathl] <- sprintf( '\\path_prefix "%s"',
-      paste( gsub( '\\', '/', prepath, fixed=TRUE), collapse=';'))
-  }
+    
+    if( any( nonbuiltin)){
+      prepath <- c( prepath,  dirname( thisR))
+      # Want fwd-slash, and I think spaces are OK
+      # Avoiding normalizePath() here, to preserve symlinks
+      upref[ prepathl] <- sprintf( '\\path_prefix "%s"',
+        paste( gsub( '\\', '/', prepath, fixed=TRUE), collapse=';'))
+    }
+  } # end of awkward Windows chutney
   
   format_start <- grep( '^#+ +FORMATS SECTION', upref)[1]
   conv_start <- grep( '^#+ +CONVERTERS SECTION', upref)[1]
