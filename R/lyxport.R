@@ -37,21 +37,27 @@ function(
   stop_or_warn= stop,
   lyxdir= NULL
 ){
-  # "C:/ProgramData/Lyx/lyx_current/resources"
-  lyxdir <- lyxdir %||% dirname( dirname( Sys.which( 'LyX')))
-  if( !dir.exists( lyxdir)){
-    lyxdir <- file.path( Sys.getenv( 'LYX'))
+  if(Sys.info()["sysname"]=="Windows"){
+    # "C:/ProgramData/Lyx/lyx_current/resources"
+    lyxdir <- lyxdir %||% dirname( dirname( Sys.which( 'LyX')))
+    if( !dir.exists( lyxdir)){
+      lyxdir <- file.path( Sys.getenv( 'LYX'))
+    }
+    # Check for existence of _runnable_ Lyx & pandoc
+    # Should be platform-agnostic, ie not require or repudiate dot-exe
+    ##   ^^^^^ lol, it isn't
+    # Don't use normalizePath() coz it unpacks symlinks
+    lyxdir <- gsub( '\\', '/', lyxdir, fixed=TRUE)
+    lyxec <- file.path( lyxdir, 'bin', 'lyx')
+    if( !nzchar( Sys.which( lyxec))){ # sneaky old me!
+      stop_or_warn( "No LyX executable in path :(")
+  }
+  }else{
+    # once again, having correct paths by default makes your life easier ;)
+    lyxec <- Sys.which( 'lyx')
   }
   
-  # Check for existence of _runnable_ Lyx & pandoc
-  # Should be platform-agnostic, ie not require or repudiate dot-exe
-  # Don't use normalizePath() coz it unpacks symlinks
-  lyxdir <- gsub( '\\', '/', lyxdir, fixed=TRUE)
-  lyxec <- file.path( lyxdir, 'bin', 'lyx')
       
-  if( !nzchar( Sys.which( lyxec))){ # sneaky old me!
-stop_or_warn( "No LyX executable in path :(")
-  }
   
   if( !nzchar( Sys.which( 'pandoc'))){ # sneaky old me!
 stop_or_warn( "No pandoc executable in path :(")
