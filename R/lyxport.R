@@ -680,7 +680,15 @@ warning( 'No "magick" in PATH or in LyX--- won\'t be able to scale images')
   
   force( origdir) # before modding zipfile
   origdir <- sub( '/*$', '', origdir) # strip trailers
-  zipfile <- sub( '[.][a-zA-Z0-9]*$', '', basename( zipfile)) %&% '.zip'
+
+  # on the Microsoft Windows "operating" "system" LyX generates zip files
+  if(Sys.info()["sysname"] == "Windows"){
+    zipfile <- sub( '[.][a-zA-Z0-9]*$', '', basename( zipfile)) %&% '.zip'
+  }else{
+    # on a real operating system we get a .tar.gz
+    zipfile <- sub( '[.]*[a-zA-Z0-9]*[.][a-zA-Z0-9]*$', '',
+                   basename( zipfile)) %&% '.tar.gz'
+  }
   # tools::file_path_sans_ext( basename( zipfile)) %&% '.zip'
   
 ## Move & extract (if it's a zip)
@@ -978,11 +986,20 @@ function(
 
   is_lyx <- grepl( '(?i)[.]lyx$', zipfile)
   if( !is_lyx){
-    contents <- unzip( zipfile, overwrite=TRUE) # overwrites by default
-    # lyx_file <- sub( '(?i)zip$', 'lyx', zipfile)
-    # ... might not work with foldery stuff
-    toplyx <- grep( sub( '.zip$', '[.]lyx$', basename( zipfile)), contents, 
-        value=TRUE)[1]
+    # once again I am asking windows to come with utilities that are useful
+    if(Sys.info()["sysname"] == "Windows"){
+      contents <- unzip( zipfile, overwrite=TRUE) # overwrites by default
+      # lyx_file <- sub( '(?i)zip$', 'lyx', zipfile)
+      # ... might not work with foldery stuff
+      toplyx <- grep( sub( '.zip$', '[.]lyx$', basename( zipfile)), contents, 
+          value=TRUE)[1]
+    }else{
+      # this is obnoxious
+      contents <- untar( zipfile, list=TRUE)
+      untar( zipfile)
+      toplyx <- grep( sub( '.tar.gz$', '[.]lyx$', basename( zipfile)), contents, 
+          value=TRUE)[1]
+    }
     setwd( dirname( toplyx))
     lyx_file <- basename( toplyx) 
   }
