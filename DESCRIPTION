@@ -9,4 +9,4 @@ Description: Tools for smooth Lyx export via pandoc, currently to MSWord but to 
 SystemRequirements: LyX, pandoc, ImageMagick
 Encoding: UTF-8
 License: GPL-2
-Collate: lyxport.R Cloaders_lyxport.R
+Collate: lyxport.R Cloaders_lyxport.R RcppExports.R

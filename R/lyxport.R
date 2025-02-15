@@ -37,22 +37,27 @@ function(
   stop_or_warn= stop,
   lyxdir= NULL
 ){
-  # "C:/ProgramData/Lyx/lyx_current/resources"
-  lyxdir <- lyxdir %||% dirname( dirname( Sys.which( 'LyX')))
-  if( !dir.exists( lyxdir)){
-    lyxdir <- file.path( Sys.getenv( 'LYX'))
+  if(Sys.info()["sysname"]=="Windows"){
+    # "C:/ProgramData/Lyx/lyx_current/resources"
+    lyxdir <- lyxdir %||% dirname( dirname( Sys.which( 'LyX')))
+    if( !dir.exists( lyxdir)){
+      lyxdir <- file.path( Sys.getenv( 'LYX'))
+    }
+    # Check for existence of _runnable_ Lyx & pandoc
+    # Should be platform-agnostic, ie not require or repudiate dot-exe
+    ##   ^^^^^ lol, it isn't
+    # Don't use normalizePath() coz it unpacks symlinks
+    lyxdir <- gsub( '\\', '/', lyxdir, fixed=TRUE)
+    lyxec <- file.path( lyxdir, 'bin', 'lyx')
+  }else{
+    # once again, having correct paths by default makes your life easier ;)
+    lyxec <- Sys.which( 'lyx')
   }
-  
-  # Check for existence of _runnable_ Lyx & pandoc
-  # Should be platform-agnostic, ie not require or repudiate dot-exe
-  # Don't use normalizePath() coz it unpacks symlinks
-  lyxdir <- gsub( '\\', '/', lyxdir, fixed=TRUE)
-  lyxec <- file.path( lyxdir, 'bin', 'lyx')
-      
+
   if( !nzchar( Sys.which( lyxec))){ # sneaky old me!
-stop_or_warn( "No LyX executable in path :(")
+    stop_or_warn( "No LyX executable in path :(")
   }
-  
+
   if( !nzchar( Sys.which( 'pandoc'))){ # sneaky old me!
 stop_or_warn( "No pandoc executable in path :(")
   }
@@ -675,7 +680,15 @@ warning( 'No "magick" in PATH or in LyX--- won\'t be able to scale images')
   
   force( origdir) # before modding zipfile
   origdir <- sub( '/*$', '', origdir) # strip trailers
-  zipfile <- sub( '[.][a-zA-Z0-9]*$', '', basename( zipfile)) %&% '.zip'
+
+  # on the Microsoft Windows "operating" "system" LyX generates zip files
+  if(Sys.info()["sysname"] == "Windows"){
+    zipfile <- sub( '[.][a-zA-Z0-9]*$', '', basename( zipfile)) %&% '.zip'
+  }else{
+    # on a real operating system we get a .tar.gz
+    zipfile <- sub( '[.]*[a-zA-Z0-9]*[.][a-zA-Z0-9]*$', '',
+                   basename( zipfile)) %&% '.tar.gz'
+  }
   # tools::file_path_sans_ext( basename( zipfile)) %&% '.zip'
   
 ## Move & extract (if it's a zip)
@@ -819,32 +832,39 @@ stop( sprintf( 'Could not find/copy "stdmenus.inc" into "%s/ui" folder', userdir
   upref <- oupref <- readLines( uprefile)
   
   ## Make sure R is in path...
+  # This is *only* an issue on Windows where you are actively discouraged
+  # from doing anything useful and reproducible on the computer.
+  # Any Mac/Linux installation will automatically make R accessible in the
+  # system path because that's a thing that makes your life easier.
+  # so you don't need any of this awkward chutney
   thisR <- commandArgs()[1]
-  prepathl <- startsWith( upref, '\\path_prefix ')
-  prepath <- upref[ prepathl] |> 
-      xsub( '^[^"]+"', '') |> 
-      xsub( '"$', '') |>
-      strsplit( ';', fixed=TRUE) |>
-      _[[1]]
-  nonbuiltin <- !grepl( '$LyXDir', prepath) # don't look here for R
-  
-  if( any( nonbuiltin)){
-    # What filext are we looking for..?
-    mebbe_ext <- sub( '.*([.][^.]+)$', '\\1', basename( thisR))
-    # Look for R or R.exe (or R.godknowswhat on Macs and beyond...)
-    gotR <- file.exists( file.path( prepath[ nonbuiltin], 'R' %&% mebbe_ext))
-    if( any( gotR)){
-      nonbuiltin[] <- FALSE # signal that we need to add
+  if(Sys.info()["sysname"] == "Windows"){
+    prepathl <- startsWith( upref, '\\path_prefix ')
+    prepath <- upref[ prepathl] |> 
+        xsub( '^[^"]+"', '') |> 
+        xsub( '"$', '') |>
+        strsplit( ';', fixed=TRUE) |>
+        _[[1]]
+    nonbuiltin <- !grepl( '$LyXDir', prepath) # don't look here for R
+    
+    if( any( nonbuiltin)){
+      # What filext are we looking for..?
+      mebbe_ext <- sub( '.*([.][^.]+)$', '\\1', basename( thisR))
+      # Look for R or R.exe (or R.godknowswhat on Macs and beyond...)
+      gotR <- file.exists( file.path( prepath[ nonbuiltin], 'R' %&% mebbe_ext))
+      if( any( gotR)){
+        nonbuiltin[] <- FALSE # signal that we need to add
+      }
     }
-  }
-  
-  if( any( nonbuiltin)){
-    prepath <- c( prepath,  dirname( thisR))
-    # Want fwd-slash, and I think spaces are OK
-    # Avoiding normalizePath() here, to preserve symlinks
-    upref[ prepathl] <- sprintf( '\\path_prefix "%s"',
-      paste( gsub( '\\', '/', prepath, fixed=TRUE), collapse=';'))
-  }
+    
+    if( any( nonbuiltin)){
+      prepath <- c( prepath,  dirname( thisR))
+      # Want fwd-slash, and I think spaces are OK
+      # Avoiding normalizePath() here, to preserve symlinks
+      upref[ prepathl] <- sprintf( '\\path_prefix "%s"',
+        paste( gsub( '\\', '/', prepath, fixed=TRUE), collapse=';'))
+    }
+  } # end of awkward Windows chutney
   
   format_start <- grep( '^#+ +FORMATS SECTION', upref)[1]
   conv_start <- grep( '^#+ +CONVERTERS SECTION', upref)[1]
@@ -966,11 +986,20 @@ function(
 
   is_lyx <- grepl( '(?i)[.]lyx$', zipfile)
   if( !is_lyx){
-    contents <- unzip( zipfile, overwrite=TRUE) # overwrites by default
-    # lyx_file <- sub( '(?i)zip$', 'lyx', zipfile)
-    # ... might not work with foldery stuff
-    toplyx <- grep( sub( '.zip$', '[.]lyx$', basename( zipfile)), contents, 
-        value=TRUE)[1]
+    # once again I am asking windows to come with utilities that are useful
+    if(Sys.info()["sysname"] == "Windows"){
+      contents <- unzip( zipfile, overwrite=TRUE) # overwrites by default
+      # lyx_file <- sub( '(?i)zip$', 'lyx', zipfile)
+      # ... might not work with foldery stuff
+      toplyx <- grep( sub( '.zip$', '[.]lyx$', basename( zipfile)), contents, 
+          value=TRUE)[1]
+    }else{
+      # this is obnoxious
+      contents <- untar( zipfile, list=TRUE)
+      untar( zipfile)
+      toplyx <- grep( sub( '.tar.gz$', '[.]lyx$', basename( zipfile)), contents, 
+          value=TRUE)[1]
+    }
     setwd( dirname( toplyx))
     lyx_file <- basename( toplyx) 
   }
