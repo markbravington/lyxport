@@ -1,3 +1,5 @@
+1.0.178: incorporated most of David Miller's mods re Macs/Linux; removed all attempts to modify path-prefix; streamlined the helpery for lyxprefhack() especially; added a self-test to lyxprefhack().
+
 1.0.174: lyxprefhack() now tries to add R to path-prefix. Minor doco fixes.
 
 1.0.169: Bugfixes with cross-refs.

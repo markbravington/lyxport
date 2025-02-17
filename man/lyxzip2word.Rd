@@ -25,7 +25,7 @@ lyxzip2word(
 )
 }
 \arguments{
-\item{  zipfile}{Name of input file, normally a LyX-zip archive with a path. Extension is optional, but ".zip" is assumed. If (for experimentation only) the extension is ".lyx", then all the other necessary files had better be in \code{tempdir}, which had better be the same folder as the in-fact-not-zippy \code{zipfile}.}
+\item{  zipfile}{Name of input file, normally a LyX-zip archive with a path. Extension is optional, but ".zip" is assumed on Windows, and ".tar.gz" on Unix-style. If (for experimentation only) the extension is ".lyx", then all the other necessary files had better be in \code{tempdir}, which had better be the same folder as the in-fact-not-zippy \code{zipfile}.}
 \item{  outext}{File extension of output.}
 \item{  panoutopts}{For pandoc's writer, to tell it what kind of output to produce, ie pandoc's "-t" argument. Normally the default of \code{outext} is fine, but there might be other useful options for specific writers, eg "markdown+myfilter-theirfilter".}
 \item{  origdir}{where \code{zipfile} lives, and where the output should go; deduced from zipfile if missing.}
@@ -33,7 +33,7 @@ lyxzip2word(
 \item{  copy}{whether to copy \code{zipfile} to \code{tempdir} (leaving the original in place), or \emph{move} it (in which case the original is "lost"). Normally it's fine to just move it, because the zipfile is only a temporary step in the creation of your magnificent MSWord-flavoured document...}
 \item{  FROM_LYX}{set TRUE iff called from inside LyX by a Converter, in which case \code{zipfile}, \code{origdir}, \code{tempdir}, and possibly \code{dbglyx} will be set according to \code{\link{commandArgs}}.}
 \item{  refdir}{ Top of the folder-tree for bibliography-finding. It should have a a folder \code{./bibtex/bib/} underneath it, containing dot-bib files. It is normally found by automatic magic.}
-\item{  lyxdir}{ Where Lyx executable lives. However, you should probably make sure Lyx is on the search path anyway, otherwise things may not work; if it is, then you can leave this NULL.}
+\item{  lyxdir}{ Normally fine to leave blank. If not, it should be path of the "Resources" folder used by LyX itself. Default is to to deduce it from the location of the LyX executable, found via \code{\link{Sys.which}}. NB if \code{lyxdir} is supplied and the LyX executable *isn't on the search path--- which it should be--- then an attempt is made to find the LyX executable relative to \code{lyxdir}; that may not be sensible.}
 \item{  lyx_userdir}{what you'd pass in the "-u <userdir>" option when starting LyX. However, as of Lyx 2.4.2.1, there's a bug which stops that working (in the particular context of \code{lyxzip2word}). What this means is, you can't use your own private layouts/modules in your own userdir tree; you'd have to copy them to Lyx's system layouts folder.}
 \item{  natnum_pandoc}{whether to turn on pandoc's own numbering scheme (when reading and when writing). More trouble than it's worth so far, hence the default is FALSE.}
 \item{  crossref_pandoc}{whether to use the "pandoc-crossref" filter when reading the Latex source. The default is TRUE, but \code{lyxzip2word} actually has to spend quite a bit of time fixing incorrect xrefs, and I suspect I could get FALSE to work with just minor mods, leading to one less "dependency". But everything's fine at the moment, so leave well enough alone.}
@@ -62,7 +62,8 @@ The steps in the conversion process are (actually there's more than this, this l
 }
 \examples{
 \dontrun{
-# In LyX, open the "lyxport-demo.lyx" example, then File->Export->Lyxzip. Then try exporting
+# In LyX, open the "lyxport-demo.lyx" example, then...
+# ... File->Export->Lyxzip. Then try exporting...
 # to a non-MSWord format, via eg...
 lyxzip2word( 'lyxport-demo.zip', outext='html')
 }

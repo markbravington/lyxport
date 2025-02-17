@@ -32,35 +32,6 @@ return( res)
 }
 
 
-"check_lyx_pandoc" <-
-function( 
-  stop_or_warn= stop,
-  lyxdir= NULL
-){
-  # "C:/ProgramData/Lyx/lyx_current/resources"
-  lyxdir <- lyxdir %||% dirname( dirname( Sys.which( 'LyX')))
-  if( !dir.exists( lyxdir)){
-    lyxdir <- file.path( Sys.getenv( 'LYX'))
-  }
-  
-  # Check for existence of _runnable_ Lyx & pandoc
-  # Should be platform-agnostic, ie not require or repudiate dot-exe
-  # Don't use normalizePath() coz it unpacks symlinks
-  lyxdir <- gsub( '\\', '/', lyxdir, fixed=TRUE)
-  lyxec <- file.path( lyxdir, 'bin', 'lyx')
-      
-  if( !nzchar( Sys.which( lyxec))){ # sneaky old me!
-stop_or_warn( "No LyX executable in path :(")
-  }
-  
-  if( !nzchar( Sys.which( 'pandoc'))){ # sneaky old me!
-stop_or_warn( "No pandoc executable in path :(")
-  }
-
-return( lyxec)
-}
-
-
 "eqalignfix" <-
 function( native_file){
   native <- readLines( native_file)
@@ -619,9 +590,11 @@ function( nlocal=sys.parent()) mlocal({
 ## Executes "in-line" within lyxzip2word
 ## Sets paths, moves files around, ...
 
+  dotzipext <- if( .Platform$OS.type=='windows') '.zip' else '.tar.gz'
+
   if( FROM_LYX){
     args <- commandArgs(TRUE)
-    zipfile <- sub( '[.]lyx$', '.zip', args[1])
+    zipfile <- sub( '[.]lyx$', dotzipext, args[1])
     origdir <- args[ 2]
     tempdir <- args[3]
     if( length( args)>3){
@@ -629,7 +602,21 @@ function( nlocal=sys.parent()) mlocal({
     }
   }    
   
-  lyxec <- check_lyx_pandoc( lyxdir=lyxdir) # or crash
+  # Locate lyx and pandoc
+  # Code simplified thanks to robust suggestions by DLM ;)
+  
+  lyxec <- Sys.which( 'lyx')
+  if( !nzchar( lyxec)){ # sneaky old me!
+    lyxec <- Sys.which( 'LyX') # if case-sensitive
+    if( !nzchar( lyxec)){
+stop( "No LyX executable in path :(")
+    }
+  }
+  
+  if( !nzchar( Sys.which( 'pandoc'))){ # sneaky old me!
+stop( "No pandoc executable in path :(")
+  }
+  
   if( nzchar( dbglyx)){ print_debugs( 1) }
   
   # For image resizing (almost always necessary, I suspect)
@@ -667,7 +654,7 @@ warning( 'No "magick" in PATH or in LyX--- won\'t be able to scale images')
   }
   if( nzchar( dbglyx)){ print( lyxver_full)}
   
-  if( lyxver_full <= '2.4.2.1'){
+  if( lyxver_full < '2.4.4'){ # apparently bugfix will be in that version
     Sys.unsetenv( sprintf( 'LYX_USERDIR_%sx', lyxver))
     # otherwise we get SIGSEGV later :(
     # Usually OK, but local modules/layouts are unavailable
@@ -675,8 +662,10 @@ warning( 'No "magick" in PATH or in LyX--- won\'t be able to scale images')
   
   force( origdir) # before modding zipfile
   origdir <- sub( '/*$', '', origdir) # strip trailers
-  zipfile <- sub( '[.][a-zA-Z0-9]*$', '', basename( zipfile)) %&% '.zip'
-  # tools::file_path_sans_ext( basename( zipfile)) %&% '.zip'
+  # Linux annoyance: _two_ dots in ".tar.gz" so no general regex for extension
+  # Accept lyx, tar-dot-gz, and zip, caselessly
+  zipfile <- sub( '(?i)[.](lyx|tar[.]gz|zip)$', '', 
+      basename( zipfile)) %&% dotzipext
   
 ## Move & extract (if it's a zip)
 stopifnot( file.exists( file.path( origdir, zipfile)))
@@ -737,9 +726,11 @@ function( userdir=NULL){
 ## A few sanity checks on file availability first...
   lyxec <- Sys.which( 'lyx')
   if( !nzchar( lyxec)){
+    lyxec <- Sys.which( 'LyX') # in case of case
+    if( !nzchar( lyxec)){
 stop( r"--{
     First, make sure the LyX executable is in your PATH--- right now it isn't, according to 'Sys.which('lyx')'}--" |> trimws())
-  }
+  }}
 
   while( is.null( userdir)){ # allow 'break'
     r"--{
@@ -759,11 +750,31 @@ stop( r"--{
     cat( 'LyX user dir (where your local "preferences" file is; get from "Help->About LyX"; single backslashes are OK): ')
     userdir <- readline()
   }
+  
+  uprefile <- file.path( userdir, 'preferences')
+  if( FALSE && !file.exists( uprefile)){
+    # Failed attempt to get LyX to make one
+    cat( "No user preferences file yet. Gonna try to get LyX to make one... cross ya fingaz")
+    # NB even if this works, there won't be a path_prefix line... even though
+    # Tools->Preferences->Paths shows plenty of them. go figga...
     
-stopifnot(
-  file.exists( defile <- file.path( userdir, 'lyxrc.defaults')),
-  file.exists( uprefile <- file.path( userdir, 'preferences'))
-)
+    # CLI LyX needs a file to do anything much, even if the file is irrelevant
+    welcome <- file.path( dirname( dirname( lyxec)), 
+        'Resources/examples/Welcome.lyx')
+    system2( lyxec, sprintf( 
+        '-n -userdir "%s" -batch -x preferences-save "%s"',
+        userdir, welcome))
+    # But it doesn't bloody work anyway... it does work without "-batch" but I 
+    # don't want a live LyX window.
+  }
+    
+  if( !file.exists( uprefile)){
+stop( 
+      'There needs to be a "preferences" file in your LyX Userdir before you can run this function. Consult its helpery.')
+  }
+  
+  defile <- file.path( userdir, 'lyxrc.defaults')
+stopifnot( file.exists( defile)) # No nice msg, coz this *really should* always exist
 
   # Check that userdir has menu file (might not have been copied yet)
   uidir <- file.path( userdir, 'ui')
@@ -780,12 +791,13 @@ stopifnot(
 stop( sprintf( 'Could not find/copy "stdmenus.inc" into "%s/ui" folder', userdir))
     }
   }
-
-  def <- readLines( defile) %that.match% '^\\\\Format +[^ ]+ +docx '
+  alldef <- readLines( defile)
   
   # New file format (alias for MSWord)
-  if( !length( def)){
-    warning( '"lyxrc.defaults" looks iffy: cannot find "docx" format. Making it up instead...')
+  docxform <- alldef %that.match% '^\\\\Format +[^ ]+ +docx '
+  if( !length( docxform)){
+    warning( 
+        '"lyxrc.docxformaults" looks iffy: cannot find "docx" format. Making it up instead...')
     newdef <- trimws( r"--{
       \format "wordx" "docx" "MS Word XML" "W" "swriter" "swriter" "document,vector,menu=export" "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     }--")
@@ -795,7 +807,7 @@ stop( sprintf( 'Could not find/copy "stdmenus.inc" into "%s/ui" folder', userdir
     # First, replace all spaces within quoted strings by @
     # Simplest to split into chars
     
-    newdef <- trimws( def[1]) |>
+    newdef <- trimws( docxform[1]) |>
       xgsub( '\t', ' ') # tabzzzzz...
     r <- gregexpr( ' "[^"]+"', newdef)[[1]]
     quoteds <- unlist( mapply( 
@@ -817,35 +829,7 @@ stop( sprintf( 'Could not find/copy "stdmenus.inc" into "%s/ui" folder', userdir
   }
 
   upref <- oupref <- readLines( uprefile)
-  
-  ## Make sure R is in path...
-  thisR <- commandArgs()[1]
-  prepathl <- startsWith( upref, '\\path_prefix ')
-  prepath <- upref[ prepathl] |> 
-      xsub( '^[^"]+"', '') |> 
-      xsub( '"$', '') |>
-      strsplit( ';', fixed=TRUE) |>
-      _[[1]]
-  nonbuiltin <- !grepl( '$LyXDir', prepath) # don't look here for R
-  
-  if( any( nonbuiltin)){
-    # What filext are we looking for..?
-    mebbe_ext <- sub( '.*([.][^.]+)$', '\\1', basename( thisR))
-    # Look for R or R.exe (or R.godknowswhat on Macs and beyond...)
-    gotR <- file.exists( file.path( prepath[ nonbuiltin], 'R' %&% mebbe_ext))
-    if( any( gotR)){
-      nonbuiltin[] <- FALSE # signal that we need to add
-    }
-  }
-  
-  if( any( nonbuiltin)){
-    prepath <- c( prepath,  dirname( thisR))
-    # Want fwd-slash, and I think spaces are OK
-    # Avoiding normalizePath() here, to preserve symlinks
-    upref[ prepathl] <- sprintf( '\\path_prefix "%s"',
-      paste( gsub( '\\', '/', prepath, fixed=TRUE), collapse=';'))
-  }
-  
+
   format_start <- grep( '^#+ +FORMATS SECTION', upref)[1]
   conv_start <- grep( '^#+ +CONVERTERS SECTION', upref)[1]
   if( is.na( format_start+conv_start)){
@@ -866,7 +850,7 @@ stop( "Can't find FORMAT and/or CONVERTERS section: preferences file looks malfo
     }
 
     last_form <- max( format_start+1, grep( '^\\\\format ', upref))
-    last_conv <- max( format_start+1, grep( '^\\\\converter ', upref))
+    last_conv <- max( conv_start+1, grep( '^\\\\converter ', upref))
 
     # Only insert new ones if not obso there!
     upref <- multinsert( upref, at=c( last_form, last_conv)[ mm==0], 
@@ -887,7 +871,7 @@ stop( "Can't find FORMAT and/or CONVERTERS section: preferences file looks malfo
   
   mkdir( file.path( userdir, 'examples/lyxport'))  # less fussy than dir.create
   egfiles <- dir( system.file( 'examples', package='lyxport'),
-      full.names=TRUE, no..=TRUE)
+      full.names=TRUE, no..=TRUE) %that.dont.match% '#$' # elim any lyx backups
   file.copy( egfiles, file.path( userdir, 'examples/lyxport'),
       overwrite=TRUE)
   
@@ -934,7 +918,44 @@ stop( "Can't find FORMAT and/or CONVERTERS section: preferences file looks malfo
     scatn( 'Updated "ui/stdmenus.inc", previous version in "ui/old_stdmenus.inc"')
   }
 
-return( as.cat( c( newdef, newconvo)))
+## Self-test (maybe)
+  scatn( 'Trying self-test...')
+  hopeful <- file.path( userdir, 'examples/lyxport/lyxport-demo.docx')
+  unlink( hopeful)
+  
+  # GHASTLY hack to get round bug with "uistyle" in "preferences" in batch mode
+  # pre-LyX 2.4.4 apparently
+  uistyles <- grep( '^ *[\\]ui_style ', upref)
+  if( length( uistyles)){
+    temp_uprefile <- tempfile()
+    file.copy( uprefile, temp_uprefile)
+    on.exit({
+      unlink( uprefile)
+      file.copy( temp_uprefile, uprefile)
+    })
+    
+    upref[ uistyles] <- '# ' %&% upref[ uistyles]
+    writeLines( upref, uprefile)
+  }
+
+  tidy_ud <- shQuote( normalizePath( userdir, winslash='/'))  
+  self_test <- try(
+    system2( 'lyx', sprintf( '-userdir %s -n -batch -v -e wordx %s',
+        tidy_ud,
+        sub( 'docx$', 'lyx', hopeful)),
+        stdout=TRUE)
+  )
+  if( (self_test %is.a% 'try-error') || 
+    ( !is.null( attr( self_test, 'status')))){
+    cat( 'Self-test failed to export "lyxport-demo" to dot-docx')
+  } else if( !file.exists( hopeful)){
+    cat( "Self-test: no error, but file did not export")
+  } else {
+    cat( 
+        'Self-test export was OK!!! You should still test as per "Did it work?" in this function\'s help, eg to see if the LyX manual for "lyxport" is available. But the good news is, you should be able to open the "lyxport-demo.docx" in your "<userdir>/examples/lyxport" folder.')
+  }
+  
+return( self_test)
 }
 
 
@@ -959,18 +980,33 @@ function(
   verbose= FALSE,
   dbglyx= ''
 ){
-  housekeeping() # set paths, move files, ...
+  housekeeping() # set paths, zip extension, move files, ...
   
   owd <- setwd( tempdir) # might move deeper in a moment
   on.exit( setwd( owd), add=TRUE)
 
   is_lyx <- grepl( '(?i)[.]lyx$', zipfile)
-  if( !is_lyx){
-    contents <- unzip( zipfile, overwrite=TRUE) # overwrites by default
-    # lyx_file <- sub( '(?i)zip$', 'lyx', zipfile)
+  if( !is_lyx){ # then it's a zip (which is the most usual case)
+    # lyx_file <- sub( sprintf( '(?i)%s$', dotzipext, perl=T)), 'lyx', zipfile)
     # ... might not work with foldery stuff
-    toplyx <- grep( sub( '.zip$', '[.]lyx$', basename( zipfile)), contents, 
-        value=TRUE)[1]
+  
+    r"--{
+    Annoyingly, Lyx uses ".tar.gz" on Unixes and ".zip" on Windows, which require different treatment (thanks DLM for spotting).
+    
+    IDNK what happens if you export a Lyx archive from Linux and try to import it on Windows, or vice versa.
+    
+    Arguably, we could/should just test on the extension of 'zipfile'. However, the main use-case is purely within one export operation from LyX itself, where checking the OS should be sufficient.
+    }--"
+    
+    if( .Platform$OS.type=='windows'){
+      contents <- unzip( zipfile, overwrite=TRUE) # overwrites by default
+    } else { # from DLM
+      contents <- untar( zipfile, list=TRUE)
+      untar( zipfile) # actually do it
+    }
+    
+    toplyx <- grep( sub( dotzipext %&% '$', '[.]lyx$', basename( zipfile)), 
+        contents, value=TRUE)[1]
     setwd( dirname( toplyx))
     lyx_file <- basename( toplyx) 
   }
