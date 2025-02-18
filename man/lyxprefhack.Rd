@@ -129,10 +129,11 @@ Now "MSWord (lyxport)" should be available from "File->Export_as" menu. It might
 }
 }
 }
-\usage{lyxprefhack( userdir)
+\usage{lyxprefhack( userdir=NULL, self_test=TRUE)
 }
 \arguments{
 \item{ userdir}{Where your config files live; see section 2 of LyX's "Customization" manual. R{} will prompt you for it if you don't supply it (and if it also can't be auto-deduced; see below), so you can copy it from "Help->About" in LyX; single backslashes or forward-slashes are OK on Windows.}
+\item{ self_test}{set FALSE to omit the self-test, which does take a few seconds (e.g. if you know it will work, or you know it will fail...).}
 I reckon the best way to run LyX (not just for this), is to set the userdir via an envar of the form "LYX_USERDIR_24x" (or "...23x" for LyX 2.3, etc), as documented in LyX's "Customization" manual (currently in the section "...multiple configurations", though I only use one config). That means file associations etc all use exactly with the same LyX setup as if you launch LyX directly. If you have set this up already, then leave \code{userdir} blank.
 }
 \value{
@@ -140,7 +141,7 @@ As described in DID.IT.WORK and MANUAL.SETUP.IN.LYX:
 \item{ - Overwrites the file "<userdir>/preferences" ((unless theres no change required). The old "preferences" will be backed up to "old_preferences<N>" (guaranteed not to overwrite any existing backup).}{}
 \item{ - Adds a "lyxport" option to "Help->Specific manuals", in the file "<userdir>/ui/stdmenus.inc", again making a backup of the latter if any change was needed. If "stdmenus.inc" did not exist in "userdir/ui", then its copied there from (an attempt to find...) LyXs system dir.}{}
 \item{ - Copies one file from the R installation to LyXs "<userdir>/doc" ("lyxport-docu.lyx") and one set of files to LyXs "<userdir>/examples/lyxport" ("lyxport-demo.lyx" and associated files).}{}
-The actual R{} return-value is probably a string such as "LyX archive ...zip created successfully" (which is good, you can ignore it) or some error output if the self-test failed.
+The actual R{} return-value is probably a string such as "LyX archive ...zip created successfully" (which is good, you can ignore it) or some error output if the self-test failed. If \code{self_test=FALSE} you should get 0, which signifies nothing :)
 \subsection{Version proofing}{
 There is a petageek-level subtlety with PATH prefix and R{} versions, which I will mention here "for completeness"--- partly because I find it generally useful, not just for \code{\link{lyxport}}.
 

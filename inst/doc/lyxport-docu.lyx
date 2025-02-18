@@ -127,7 +127,11 @@ lyxport
 
 \begin_layout Author
 Mark Bravington,
- December 2024
+ February 2025
+\begin_inset Newline newline
+\end_inset
+
+updated for v1.0.178+
 \end_layout
 
 \begin_layout Section
@@ -229,50 +233,87 @@ Setup
 \end_layout
 
 \begin_layout Standard
-Once you've installed the package,
- 
-\series bold
-close any running LyX instances
-\series default
- and then run 
+Once you've installed and loaded the 
 \family typewriter
-lyxprefhack()
+lyxport
 \family default
- to set things up for direct use from LyX (you should also do 
-\family typewriter
-?lyxprefhack
-\family default
- and read its doco,
- at least before you complain!).
- When you open LyX,
- you should see an "MSWord (lyxport)" option in File->Export,
- and a 
+ package,
+ read the helpery
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+My word for 
 \begin_inset Quotes eld
 \end_inset
 
-lyxport
+documentation
 \begin_inset Quotes erd
 \end_inset
 
- item in LyX's Help menu (this file).
- Test
-\begin_inset Foot
-status collapsed
+—
+ as distinct from the word 
+\begin_inset Quotes eld
+\end_inset
 
-\begin_layout Plain Layout
+document
+\begin_inset Quotes erd
+\end_inset
 
-\family typewriter
-lyxprefhack
-\family default
- may or may not include its own test;
- currently it doesn't,
- but that might change,
- and I might forget to update this document.
+,
+ which means I can use the abbreviation 
+\begin_inset Quotes eld
+\end_inset
+
+docu
+\begin_inset Quotes erd
+\end_inset
+
+ or 
+\begin_inset Quotes eld
+\end_inset
+
+doco
+\begin_inset Quotes erd
+\end_inset
+
+ exclusively for the latter.
 \end_layout
 
 \end_inset
 
- it by trying to export the 
+ in 
+\family typewriter
+?lyxprefhack
+\family default
+,
+ make sure its requirements are met,
+ and then try running 
+\family typewriter
+lyxprefhack()
+\family default
+ to set things up for direct use from LyX.
+ The helpery also explains how you can do the setup manually if 
+\family typewriter
+lyxprefhack
+\family default
+ doesn't work—
+ it hasn't been tested on all OSes,
+ and people's computer setups are notoriously variable...
+ The helpery also explains how to test whether it has all worked.
+ If you are reading this document from inside LyX,
+ then that's a good sign,
+ but not a cast-iron guarantee—
+ the real test is whether you can do 
+\begin_inset Quotes eld
+\end_inset
+
+File->Export_as->MSWord_(lyxport)
+\begin_inset Quotes erd
+\end_inset
+
+?
+ A good test document is the example 
 \begin_inset Quotes eld
 \end_inset
 
@@ -280,7 +321,31 @@ lyxport-demo.lyx
 \begin_inset Quotes erd
 \end_inset
 
- example mentioned earlier.
+,
+ which (if 
+\family typewriter
+lyxprefhack
+\family default
+ or your manual setup has worked) you should be open in LyX via 
+\begin_inset Quotes eld
+\end_inset
+
+File->Open_example
+\begin_inset Quotes erd
+\end_inset
+
+ and searching.
+ Try exporting it with LyX's built-in MSWord XML option,
+ and then with 
+\begin_inset Quotes eld
+\end_inset
+
+MSWord (lyxport)
+\begin_inset Quotes erd
+\end_inset
+
+;
+ the differences will be obvious.
 \end_layout
 
 \begin_layout Standard
@@ -300,7 +365,7 @@ After setup,
 \family typewriter
 requote_lyx
 \family default
- or any other future 
+ or (in future) any other 
 \begin_inset Quotes eld
 \end_inset
 
@@ -308,8 +373,7 @@ offline
 \begin_inset Quotes erd
 \end_inset
 
- support function—
- currently that's the only one).
+ support function.
  However,
  a keen user could experiment with the core function 
 \family typewriter
@@ -318,21 +382,6 @@ lyxzip2word
 (qv) directly,
  e.g.
  to produce other formats besides MSWord.
-\end_layout
-
-\begin_layout Subsubsection
-When setup goes wrong
-\end_layout
-
-\begin_layout Standard
-...
- to be added.
- Needless to say,
- it works for 
-\emph on
-me
-\emph default
-...
 \end_layout
 
 \begin_layout Subsection
@@ -345,7 +394,8 @@ In terms of additions to your document:
  unless you are using citations\SpecialChar breakableslash
 bibliography.
  If you are,
- then you will need to add one line of ERT to define the bibliography style (section
+ then you will need to add one line of ERT to define the bibliography style.
+ Section
 \begin_inset space ~
 \end_inset
 
@@ -360,12 +410,12 @@ nolink "false"
 
 \end_inset
 
-),
- and 
+) explains how,
+ and mentions a few extra tweaks that you 
 \emph on
-possibly
+might
 \emph default
- a few extra tweaks on it.
+ want to do.
 \end_layout
 
 \begin_layout Standard
@@ -419,7 +469,8 @@ tries to resolve inconsistent use of straight quotes,
  probably only once per LyX file.
  For example,
  I used it when creating this document,
- which was based on importing plain text files of R documentation.
+ which was based on importing plain text files of R helpery.
+ There's also those bibliography tweaks.
 \end_layout
 
 \begin_layout Subsection
@@ -428,15 +479,22 @@ Versions
 
 \begin_layout Standard
 Version 1.0 of Lyport is written for Pandoc 3.5 and Pandoc-crossref v0.3.18.0.
- It's quite possible that some of the problems which Lyxport 1.0 deals with,
+\end_layout
+
+\begin_layout Standard
+It's quite possible that some of the problems which Lyxport 1.0 deals with,
  will actually be fixed in future releases of Pandoc.
  In that case,
  the Lyxport fixes might cause other problems..!
  Of course,
  I will try to maintain Lyxport accordingly,
  but I don't need Pandoc very often,
- so I might not get round to it quickly,
- What I should perhaps do for future-proofing,
+ so I might not get round to it quickly.
+\end_layout
+
+\begin_layout Standard
+Note to myself really:
+ what I should perhaps do for future-proofing,
  is make all the fix options switchable,
  and add a single character-string argument to 
 \family typewriter
@@ -1114,11 +1172,25 @@ How it works
 In LyX,
  there needs to be a new "File Format" (in Preferences) which is an alias for the existing MSWord format.
  (The same would apply to any other desired type of output.) Then there needs to be a "Converter" from "Lyx-zip (archive)" format to the new alias.
- When you pick "File->Export->[new format alias]",
+ (These should be created automatically by 
+\family typewriter
+lyxprefhack
+\family default
+,
+ or manually by you if necessary,
+ as 
+\family typewriter
+?lyxprefhack
+\family default
+ explains.)
+\end_layout
+
+\begin_layout Standard
+When you pick "File->Export->[new format alias]",
  LyX will realize that the only way to produce the new format is to first export to Lyx-zip (producing,
  yes,
- a zip file),
- then run the new Converter.
+ a dot-zip or dot-tar-dot-gz file),
+ then to run the new Converter.
  The latter launches R,
  and runs 
 \family typewriter
@@ -1140,37 +1212,29 @@ my
  I have zero wish to learn new programming languages or arcane file formats,
  and I have a pretty limited understanding of Latex--- much of the point of LyX being to avoid having to remember all the Latex gruesome details!
  However,
- the good news is that LyX exports a highly structured and limited form of Latex (unless you insert really nasty ERT...) which makes it easy to "partially parse" the file using 'grep' etc to find constructs that need attention.
+ the good news is that LyX exports a highly structured and limited form of Latex (unless you insert really nasty ERT...) which makes it easy to partially-parse the file using 
+\family typewriter
+grep
+\family default
+ etc to find constructs that need attention.
  Similarly,
  Pandoc exports a highly-structured "native" format which IMO is much easier to partially-parse than JSON--- for example,
  indentation is highly consistent,
- so I can usually find the range of lines to 'gsub' etc by matching indentation size.
+ so I can usually find the range of lines to 
+\family typewriter
+gsub
+\family default
+ etc by matching indentation size.
  Then I monkeyed around (a lot) until things worked.
 \end_layout
 
 \begin_layout Standard
 Because I rely on LyX's specific and tidy structuring of its Latex exports,
- 'lyxzip2word' simply won't work on generic Latex documents.
-\end_layout
-
-\begin_layout Standard
-In slightly more detail,
- the steps are:
-\end_layout
-
-\begin_layout Standard
-- From inside LyX,
- LyX exports to LyX-zip,
- containing all Lyx source files and all graphics in a single file.
-\end_layout
-
-\begin_layout Standard
-- LyX calls a converter script to convert to target format (an "alternative MSWord"),
- which launches R and runs 'lyxzip2word'.
-\end_layout
-
-\begin_layout Standard
-See 'lyxzip2word' for more detail on the actual conversion steps.
+ 
+\family typewriter
+lyxzip2word
+\family default
+ simply won't work on generic Latex documents.
 \end_layout
 
 \begin_layout Section
@@ -1199,7 +1263,7 @@ reference-doc
 \family typewriter
 https://pandoc.org/chunkedhtml-demo/6-templates.html
 \family default
- and
+ and 
 \family typewriter
 https://pandoc.org/MANUAL.html#option--reference-doc
 \family default
@@ -1208,13 +1272,39 @@ https://pandoc.org/MANUAL.html#option--reference-doc
  for example,
  Pandoc's default choices for MSWord "bold" looks pretty weird to me.
  The template/reference-doc also seems to be the place where you set features such as line- and page-numbering.
- (I have included an example,
+ I have included an example,
  
 \begin_inset Quotes eld
 \end_inset
 
 iwc-pandoc-reference.docx
 \begin_inset Quotes erd
+\end_inset
+
+
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+You should be able to find it from R with 
+\family typewriter
+system.file( 'examples/iwc-pandoc-reference.docx
+\begin_inset Quotes erd
+\end_inset
+
+');
+
+\family default
+ or,
+ from LyX,
+ inside the 
+\family typewriter
+<userdir>/examples/lyxport
+\family default
+ folder.
+ Copy it somewhere else before actually using it.
+\end_layout
+
 \end_inset
 
 ,
@@ -1226,7 +1316,8 @@ iwc-pandoc-reference.docx
 style
 \emph default
  of an item,
- not the appearance of the item itself.) Then you must also tell Pandoc which template to use,
+ not the appearance of the item itself.
+ Then you must also tell Pandoc which template to use,
  by adding ERT like this (which again will not be visible in the PDF or DOCX version):
 \end_layout
 
@@ -1274,7 +1365,11 @@ template
  use the appropriate word.
  As you see,
  you can specify different ones for different formats,
- which will be automatically selected depending on which Converter you invoke (assuming you have set up LyX Converters for more formats than MSWord).
+ which will be automatically selected depending on which Converter you invoke (if you have manually set up LyX Converters that use 
+\family typewriter
+lyxport
+\family default
+ for more formats than MSWord).
  File location works the same way as CSS bibliography styles.
  No path means top of the TEXMF tree,
  
@@ -1788,7 +1883,7 @@ crossref
 \begin_inset Quotes eld
 \end_inset
 
-eqntest1.lyx
+lyxport-demo.lyx
 \begin_inset Quotes erd
 \end_inset
 
@@ -1838,7 +1933,7 @@ Hmmm,
  However,
  I reluctantly concede that Lyxport does quite a good job of exporting to MSWord,
  and I note that it actually starts from a Latex file (as exported by LyX).
- Can I make use of it on my own Latex files?
+ Can I make use of it on my own superior Latex files?
 \end_layout
 
 \begin_layout Description

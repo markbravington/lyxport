@@ -722,7 +722,10 @@ stopifnot( file.exists( file.path( origdir, zipfile)))
 
 
 "lyxprefhack" <-
-function( userdir=NULL){
+function( 
+  userdir=NULL, 
+  self_test=TRUE
+){
 ## A few sanity checks on file availability first...
   lyxec <- Sys.which( 'lyx')
   if( !nzchar( lyxec)){
@@ -919,40 +922,44 @@ stop( "Can't find FORMAT and/or CONVERTERS section: preferences file looks malfo
   }
 
 ## Self-test (maybe)
-  scatn( 'Trying self-test...')
-  hopeful <- file.path( userdir, 'examples/lyxport/lyxport-demo.docx')
-  unlink( hopeful)
-  
-  # GHASTLY hack to get round bug with "uistyle" in "preferences" in batch mode
-  # pre-LyX 2.4.4 apparently
-  uistyles <- grep( '^ *[\\]ui_style ', upref)
-  if( length( uistyles)){
-    temp_uprefile <- tempfile()
-    file.copy( uprefile, temp_uprefile)
-    on.exit({
-      unlink( uprefile)
-      file.copy( temp_uprefile, uprefile)
-    })
-    
-    upref[ uistyles] <- '# ' %&% upref[ uistyles]
-    writeLines( upref, uprefile)
-  }
+  if( self_test){
+    scatn( 'Trying self-test--- will take a few seconds...')
+    hopeful <- file.path( userdir, 'examples/lyxport/lyxport-demo.docx')
+    unlink( hopeful)
 
-  tidy_ud <- shQuote( normalizePath( userdir, winslash='/'))  
-  self_test <- try(
-    system2( 'lyx', sprintf( '-userdir %s -n -batch -v -e wordx %s',
-        tidy_ud,
-        sub( 'docx$', 'lyx', hopeful)),
-        stdout=TRUE)
-  )
-  if( (self_test %is.a% 'try-error') || 
-    ( !is.null( attr( self_test, 'status')))){
-    cat( 'Self-test failed to export "lyxport-demo" to dot-docx')
-  } else if( !file.exists( hopeful)){
-    cat( "Self-test: no error, but file did not export")
+    # GHASTLY hack to get round bug with "uistyle" in "preferences" in batch mode
+    # pre-LyX 2.4.4 apparently
+    uistyles <- grep( '^ *[\\]ui_style ', upref)
+    if( length( uistyles)){
+      temp_uprefile <- tempfile()
+      file.copy( uprefile, temp_uprefile)
+      on.exit({
+        unlink( uprefile)
+        file.copy( temp_uprefile, uprefile)
+      })
+
+      upref[ uistyles] <- '# ' %&% upref[ uistyles]
+      writeLines( upref, uprefile)
+    }
+
+    tidy_ud <- shQuote( normalizePath( userdir, winslash='/'))  
+    self_test <- try(
+      system2( 'lyx', sprintf( '-userdir %s -n -batch -v -e wordx %s',
+          tidy_ud,
+          sub( 'docx$', 'lyx', hopeful)),
+          stdout=TRUE)
+    )
+    if( (self_test %is.a% 'try-error') || 
+      ( !is.null( attr( self_test, 'status')))){
+      cat( 'Self-test failed to export "lyxport-demo" to dot-docx')
+    } else if( !file.exists( hopeful)){
+      cat( "Self-test: no error, but file did not export")
+    } else {
+      cat( 
+          'Self-test export was OK!!! You should still test as per "Did it work?" in this function\'s help, eg to see if the LyX manual for "lyxport" is available. But the good news is, you should be able to open the "lyxport-demo.docx" in your "<userdir>/examples/lyxport" folder.')
+    }
   } else {
-    cat( 
-        'Self-test export was OK!!! You should still test as per "Did it work?" in this function\'s help, eg to see if the LyX manual for "lyxport" is available. But the good news is, you should be able to open the "lyxport-demo.docx" in your "<userdir>/examples/lyxport" folder.')
+    self_test <- 0 # usually signifies OK
   }
   
 return( self_test)
