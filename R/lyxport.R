@@ -686,7 +686,7 @@ warning( 'No "magick" in PATH or in LyX--- won\'t be able to scale images')
     zipfile <- sub( '[.][a-zA-Z0-9]*$', '', basename( zipfile)) %&% '.zip'
   }else{
     # on a real operating system we get a .tar.gz
-    zipfile <- sub( '[.]*[a-zA-Z0-9]*[.][a-zA-Z0-9]*$', '',
+    zipfile <- sub( '\\.[a-zA-Z0-9]*', '',
                    basename( zipfile)) %&% '.tar.gz'
   }
   # tools::file_path_sans_ext( basename( zipfile)) %&% '.zip'
