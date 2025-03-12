@@ -1,3 +1,5 @@
+1.0.182: Now checks that encoding is UTF8 (which is a requirement; user may have to change docu setting in LyX).
+
 1.0.179: Added the "iwc-pandoc-reference.docx" file, to show how to improve appearance. Tweaked "lyxport-docu.lyx".
 
 1.0.178: incorporated most of David Miller's mods re Macs/Linux; removed all attempts to modify path-prefix; streamlined the helpery for lyxprefhack() especially; added a self-test to lyxprefhack().

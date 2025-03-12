@@ -131,7 +131,7 @@ Mark Bravington,
 \begin_inset Newline newline
 \end_inset
 
-updated for v1.0.178+
+updated for v1.0.182+
 \end_layout
 
 \begin_layout Section
@@ -1423,6 +1423,10 @@ There are probably lots more than this.
 \end_layout
 
 \begin_layout Itemize
+Encoding must be set to UTF8 (Document->Settings->Language->Encoding).
+\end_layout
+
+\begin_layout Itemize
 Labels must start with the right prefix for the thing they are labelling:
  "tab:" for table-floats,
  "fig:" for figure-floats,
@@ -1704,7 +1708,7 @@ name "sec:The-LyX-userdir"
 \end_layout
 
 \begin_layout Standard
-There's a bug in LyX 2.4.2.1 (at least) which means that,
+There's a bug in LyX 2.4.3 (and some earlier versions) which means that,
  if you have a personal LyX userdir (which surely everyone does),
  it can't safely be made visible to LyX during the export operation.
  Normally this doesn't matter,
@@ -1716,7 +1720,7 @@ There's a bug in LyX 2.4.2.1 (at least) which means that,
 
 \begin_layout Standard
 The LyX developers know about the bug,
- and apparently a fix is in the works.
+ and apparently the very simple fix will appear in 2.4.4.
  Until then,
  for those who 
 \emph on
@@ -1785,6 +1789,44 @@ unset
 
 \begin_layout Section
 FAQ
+\end_layout
+
+\begin_layout Description
+Q:
+
+\emph on
+ There was a bug,
+ and then when I'd fixed it and tried again,
+ it just seemed to be trying (and faililng) to convert the original file.
+ What to do?
+\end_layout
+
+\begin_layout Description
+A:
+ This can occasionally happen with LyX's file cache not being cleared properly.
+ It's a real pain.
+ What you can try is going to the LyX tempdir,
+ searching for your main dot-lyx and corresponding dot-zip file in all subfolders (they will probably be in 
+\begin_inset Quotes eld
+\end_inset
+
+...tmpbuf<n>
+\begin_inset Quotes erd
+\end_inset
+
+,
+ where 
+\begin_inset Quotes eld
+\end_inset
+
+<n>
+\begin_inset Quotes erd
+\end_inset
+
+ is an unpredictable number),
+ and deleting them.
+ It mainly seems to happen to me when I'm debugging Lyxport and exporting dot-zips manually from LyX,
+ so hopefully you won't encounter it...
 \end_layout
 
 \begin_layout Description

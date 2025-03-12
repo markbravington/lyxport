@@ -1018,6 +1018,13 @@ function(
     lyx_file <- basename( toplyx) 
   }
 
+## Check encoding...
+  lyxlines <- readLines( lyx_file)
+  enco <- lyxlines[ startsWith( lyxlines, '\\inputencoding ')][1]
+  if( is.na( enco) || !grepl( ' (?i)utf8', enco)){
+stop( "LyX file is not UTF8-encoded. Please fix that (Document->Settings->Language->Encoding->Language_Type) and re-export")
+  }
+
 ## Export to Tex, using Lyx itself
   # Seems to work despite warning about "'py' not recognized"
 
@@ -1043,6 +1050,9 @@ stopifnot( ok==0, file.exists( tex_file))
     incfiles <- sub( '^[^{]*[{]([^}]+)[}].*', '\\1', texlines[ includel])
     includees <- lapply( incfiles, readLines)
     texlines <- massrep( texlines, includel, includees)
+  }
+  if( !all( validUTF8( texlines))){
+stop( "Tex version from LyX is not UTF8, but must be. ?Check Document->Settings->Language->Encoding..")
   }
 
 ## Tex processing...
