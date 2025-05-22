@@ -1,7 +1,8 @@
 Package: lyxport
-Version: 1.0.183
+Version: 1.0.184
 Author: Mark Bravington <markb2@summerinsouth.net>
 Maintainer: Mark Bravington <markb2@summerinsouth.net>
+Depends: R (>= 4.3.0)
 Imports: mvbutils, Rcpp
 LinkingTo: Rcpp
 Title: LyX to MSWord etc
