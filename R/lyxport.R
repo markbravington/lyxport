@@ -984,6 +984,7 @@ function(
 
   natnum_pandoc= FALSE, # devil or deep-blue-sea?
   crossref_pandoc= TRUE,
+  extra_filters= NULL,
   verbose= FALSE,
   dbglyx= ''
 ){
@@ -1057,6 +1058,9 @@ stop( "Tex version from LyX is not UTF8, but must be. ?Check Document->Settings-
 
 ## Tex processing...
 
+  # pagebreak fix: Lyx outputs \pagebreak{} which shouldn't have curlies
+  texlines[ texlines=='\\pagebreak{}'] <- '\\pagebreak'
+
   # Do we want section numbering? Take an inspired guess, *before* Apx tweaks
   nonum <- sum( startsWith( texlines, '\\section*{'))
   yesnum <- sum( startsWith( texlines, '\\section{'))
@@ -1121,14 +1125,16 @@ stop( "Can't find TEXMFHOME from kpsewhich")
 
   # Need "-s" (standalone), else title/author/abstract disappear...
   pandoc_native_args <- sprintf( 
-      '-s %s %s %s %s -f latex -t native -o %s',
+      '%s %s -s %s %s %s %s -f latex -t native -o %s',
+      paste( extra_filters, collapse=' '), # works for NULL too
+      if( verbose) '--log=pandoc.log --verbose' else '',
       tex_file,
       pandoc_xref,
       if( yesnum > nonum) '--number-sections' else '', 
       resourcio,
       pandoc_file    
     )
-  
+    
   scatn( 'About to convert to native pandoc')
   test1 <- system2( 'pandoc', pandoc_native_args)
   if( test1 != 0){
@@ -1167,7 +1173,7 @@ stop( "Initial conversion to pandoc failed--- check the log")
 ## Convert native to docx
   docx_file <- sub( 'tex$', outext, tex_file)    
   pandoc_docx_args <- sprintf( '%s %s -f native %s %s -t %s -o %s',
-      if( verbose) '--log=pandoc.log --verbose' else '',
+      if( verbose) '--log=docxconv.log --verbose' else '',
       if( natnum_pandoc && (yesnum > nonum)) '--number-sections' else '', 
       pandoc_file,
       refdoc,
