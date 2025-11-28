@@ -1411,6 +1411,42 @@ Try to avoid filenames with spaces—
  and everywhere else!
 \end_layout
 
+\begin_layout Subsection
+LUA Filters
+\end_layout
+
+\begin_layout Standard
+Pandoc has a plethora of LUA filters for various things,
+ including 
+\family typewriter
+newpage/pagebreak 
+\family default
+from Latex;
+ that one is built-in to Lyxport as of v1.0.188.
+ If you want to add extra filters,
+ copy them into the 
+\begin_inset Quotes eld
+\end_inset
+
+lua-filters
+\begin_inset Quotes erd
+\end_inset
+
+ folder of the installed package,
+ and they should run automatically.
+ See the 
+\family typewriter
+extra_filters
+\family default
+ argument in 
+\family typewriter
+?lyxzip2word
+\family default
+ for more details.
+ There's currently no mechanism to run non-Lua filters,
+ but I could probably add it if there's enough demand.
+\end_layout
+
 \begin_layout Section
 Limitations
 \end_layout

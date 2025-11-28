@@ -1,4 +1,4 @@
-1.0.184: attempt to allow newpage/pagebreak. Formerly, everything after that was disappearing. Now, at least it appears, but there is no pagebreak. I was testing Github's "pandoc-ext/pagebreak.lua" filter. Anyway, the 'extra_filters' argument has also been added to 'lyxzip2word' to facilitate manual tests of such things, but I haven't added it to the LyX converter.
+1.0.188: Allows newpage/pagebreak. Part of a more general mechanism, just added, to run arbitrary LUA filters in the installed package's "lua-filters" folder. (Currently only "pagebreak.lua".)
 
 1.0.182: Now checks that encoding is UTF8 (which is a requirement; user may have to change docu setting in LyX).
 

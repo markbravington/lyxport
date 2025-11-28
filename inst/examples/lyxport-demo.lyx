@@ -906,6 +906,27 @@ name "fig:oobl-goobl"
 \end_layout
 
 \begin_layout Section
+Gratuitous blank page
+\end_layout
+
+\begin_layout Standard
+The rest of this page is intentionally left blank,
+ I hope,
+ thx2 
+\family typewriter
+Insert->Formatting->New_page
+\family default
+...
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
 Citations
 \end_layout
 

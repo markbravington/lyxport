@@ -20,7 +20,7 @@ lyxzip2word(
   lyx_userdir= NULL,
   natnum_pandoc= FALSE, # devil or deep-blue-sea?
   crossref_pandoc= TRUE,
-  extra_filters= NULL,
+  extra_filters= TRUE,
   verbose= FALSE,
   dbglyx= ''
 )
@@ -38,7 +38,7 @@ lyxzip2word(
 \item{  lyx_userdir}{what you'd pass in the "-u <userdir>" option when starting LyX. However, as of Lyx 2.4.2.1, there's a bug which stops that working (in the particular context of \code{lyxzip2word}). What this means is, you can't use your own private layouts/modules in your own userdir tree; you'd have to copy them to Lyx's system layouts folder.}
 \item{  natnum_pandoc}{whether to turn on pandoc's own numbering scheme (when reading and when writing). More trouble than it's worth so far, hence the default is FALSE.}
 \item{  crossref_pandoc}{whether to use the "pandoc-crossref" filter when reading the Latex source. The default is TRUE, but \code{lyxzip2word} actually has to spend quite a bit of time fixing incorrect xrefs, and I suspect I could get FALSE to work with just minor mods, leading to one less "dependency". But everything's fine at the moment, so leave well enough alone.}
-\item{  extra_filters}{eg something like "--lua-filter=<full-path-to-something-dot-lua>", or a character vector of similars. These are pasted and prefixed to the args of the first pandoc call--- the one that generates the pandoc file. Doesn't seem to be working, but that might be the "pagebreak.lua" filter that I'm trying--- or might just be me, IDNK.}
+\item{  extra_filters}{which addition Lua filters to run. Default \code{TRUE} means use all Lua files in the installed package's "lua-filters" folder; as of v1.0.188, that was just "pagebreak.lua", but I may add others and you can manually copy your own faves in there too. \code{FALSE} or \code{NULL} means no filters; otherwise, a vector of file names (with full path). Since the LyX invoker has (v1.0.188 anyway) no way to set this parameter, you have to put your filters into the aforementioned folder if you want to do this directly from LyX.}
 \item{  verbose}{if TRUE, then generate two logfiles, "pandoc.log" and "docxconv.log", in \code{tempdir}, for the latex-to-pandoc and pandoc-to-docx conversions respectively.}
 \item{  dbglyx}{Only for debugging, obvs. Should be blank, or a positive integer as per "lyx -dbg". Any number will also cause R{} to print out various things, such as paths.}
 }

@@ -984,7 +984,7 @@ function(
 
   natnum_pandoc= FALSE, # devil or deep-blue-sea?
   crossref_pandoc= TRUE,
-  extra_filters= NULL,
+  extra_filters= TRUE,
   verbose= FALSE,
   dbglyx= ''
 ){
@@ -1060,6 +1060,8 @@ stop( "Tex version from LyX is not UTF8, but must be. ?Check Document->Settings-
 
   # pagebreak fix: Lyx outputs \pagebreak{} which shouldn't have curlies
   texlines[ texlines=='\\pagebreak{}'] <- '\\pagebreak'
+  texlines[ texlines=='\\newpage{}'] <- '\\pagebreak'
+
 
   # Do we want section numbering? Take an inspired guess, *before* Apx tweaks
   nonum <- sum( startsWith( texlines, '\\section*{'))
@@ -1123,10 +1125,18 @@ stop( "Can't find TEXMFHOME from kpsewhich")
     }
   pandoc_file <- sub( 'tex$', 'pandoc', tex_file)
 
+  if( suppressWarnings( # FFS the whole POINT of isT() is surely to just fucken say yay or nay... 
+      isT( extra_filters))){
+    # then do em all
+    extra_filters <- dir( system.file( 'lua-filters', package='lyxport'), pattern='[.]lua$', full=TRUE)
+  } else if( !is.character( extra_filters)){
+    extra_filters <- NULL
+  }
+  
   # Need "-s" (standalone), else title/author/abstract disappear...
   pandoc_native_args <- sprintf( 
-      '%s %s -s %s %s %s %s -f latex -t native -o %s',
-      paste( extra_filters, collapse=' '), # works for NULL too
+      '%s %s -s %s %s %s %s -f latex+raw_tex -t native -o %s',
+      if( length( extra_filters)) paste( sprintf( '--lua-filter="%s"', extra_filters), collapse=' ') else '',
       if( verbose) '--log=pandoc.log --verbose' else '',
       tex_file,
       pandoc_xref,
