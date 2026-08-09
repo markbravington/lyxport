@@ -1279,9 +1279,11 @@ function( tex, panfile, texfile=NULL){
       partab <- table( parent)
       
       # Count sibsecs with same parent: 1, 2, 3, ...
+      # pmax() is to avoid crash when section is overly nested, eg 2.0.1 directly after 2
+      # may not work...
       sib_since_parent <- unlist( lapply( partab, seq_len))
       ctr[ these] <- sprintf( '%s.%i', 
-          if( length( preves)) ctr[ preves[ parent]] else '0',
+          if( length( preves)) ctr[ preves[ pmax( parent, 1)]] else '0',
         sib_since_parent)
     } else { # section (top-level)
       ctr[ these] <- as.character( seq_along( these)) # 1 upwards

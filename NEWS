@@ -1,3 +1,5 @@
+1.0.190: "Fixed" crash when sectioning skips a level, eg 1 then 1.0.1. Whether the results are ideal, IDNK (maybe it should warn)--- but better than a crash!
+
 1.0.188: Allows newpage/pagebreak. Part of a more general mechanism, just added, to run arbitrary LUA filters in the installed package's "lua-filters" folder. (Currently only "pagebreak.lua".)
 
 1.0.182: Now checks that encoding is UTF8 (which is a requirement; user may have to change docu setting in LyX).
